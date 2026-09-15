@@ -1,0 +1,44 @@
+{
+  "name": "tanstack-aspnet-data",
+  "version": "0.1.0-next.0",
+  "description": "Server-side data adapter: TanStack Table state to DevExtreme.AspNet.Data wire format (ASP.NET Core + EF Core). No DevExtreme UI required.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anomalyco/tanstacktable-aspnet-data.git"
+  },
+  "homepage": "https://github.com/anomalyco/tanstacktable-aspnet-data#readme",
+  "bugs": {
+    "url": "https://github.com/anomalyco/tanstacktable-aspnet-data/issues"
+  },
+  "keywords": ["tanstack", "tanstack-table", "aspnet", "asp.net", "devextreme", "ef-core", "efcore"],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "msw": "^2.7.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}

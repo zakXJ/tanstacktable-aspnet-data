@@ -1,0 +1,70 @@
+{
+  "name": "@tanstack-aspnet-data/react",
+  "version": "0.1.0-next.0",
+  "description": "React hook for tanstack-aspnet-data: server-side TanStack Table backed by DevExtreme.AspNet.Data (ASP.NET Core + EF Core).",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anomalyco/tanstacktable-aspnet-data.git"
+  },
+  "homepage": "https://github.com/anomalyco/tanstacktable-aspnet-data#readme",
+  "bugs": {
+    "url": "https://github.com/anomalyco/tanstacktable-aspnet-data/issues"
+  },
+  "keywords": ["tanstack", "tanstack-table", "react", "aspnet", "devextreme", "ef-core"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./query": {
+      "types": "./dist/query.d.ts",
+      "import": "./dist/query.js",
+      "require": "./dist/query.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@tanstack/react-table": "^8.13.0",
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-query": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "tanstack-aspnet-data": "workspace:^"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-table": "^8.21.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "happy-dom": "^17.0.0",
+    "msw": "^2.7.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}

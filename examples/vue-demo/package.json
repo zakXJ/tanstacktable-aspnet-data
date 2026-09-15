@@ -1,0 +1,19 @@
+{
+  "name": "vue-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@tanstack-aspnet-data/vue": "workspace:*",
+    "@tanstack/vue-table": "^8.21.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.0",
+    "typescript": "^5.6.0",
+    "vite": "^7.0.0"
+  }
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tanstack-aspnet-data — React demo</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem; color: #1a202c; }
+      h1 { font-size: 1.25rem; }
+      .toolbar { display: flex; gap: .75rem; margin: 1rem 0; flex-wrap: wrap; align-items: center; }
+      input, select { padding: .4rem .6rem; border: 1px solid #cbd5e0; border-radius: 6px; }
+      table { border-collapse: collapse; width: 100%; max-width: 900px; }
+      th, td { border-bottom: 1px solid #e2e8f0; padding: .5rem .75rem; text-align: left; }
+      th { cursor: pointer; user-select: none; background: #f7fafc; white-space: nowrap; }
+      th:hover { background: #edf2f7; }
+      button { padding: .35rem .8rem; border: 1px solid #cbd5e0; background: #fff; border-radius: 6px; cursor: pointer; }
+      button:disabled { opacity: .45; cursor: default; }
+      .status { color: #718096; font-size: .9rem; }
+      .error { color: #c53030; }
+      .pager { display: flex; gap: .5rem; align-items: center; margin-top: 1rem; }
+      .filters td input { width: 100%; min-width: 90px; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
