@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/anomalyco/tanstacktable-aspnet-data.git"
+    "url": "https://github.com/zakXJ/tanstacktable-aspnet-data.git"
   },
-  "homepage": "https://github.com/anomalyco/tanstacktable-aspnet-data#readme",
+  "homepage": "https://github.com/zakXJ/tanstacktable-aspnet-data#readme",
   "bugs": {
-    "url": "https://github.com/anomalyco/tanstacktable-aspnet-data/issues"
+    "url": "https://github.com/zakXJ/tanstacktable-aspnet-data/issues"
   },
   "keywords": ["tanstack", "tanstack-table", "react", "aspnet", "devextreme", "ef-core"],
   "publishConfig": {
