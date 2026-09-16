@@ -22,7 +22,12 @@ interface Product {
   createdAt: string // ISO
 }
 
-const API_URL = 'http://localhost:5055/api/products'
+// VITE_API_URL is set on Vercel to the Railway API.
+// Falls back to Railway prod so `vite build` works without env,
+// and localhost remains usable via `.env.local` in dev.
+const API_URL =
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  'https://tanstack-aspnet-data-production.up.railway.app/api/products'
 
 const CATEGORY_OPTIONS = ['Cardiology', 'Orthopedics', 'Neurology', 'Imaging', 'Surgery', 'Monitoring']
 const COUNTRY_OPTIONS = ['USA', 'Germany', 'Netherlands']

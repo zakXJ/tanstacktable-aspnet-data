@@ -1,6 +1,12 @@
 # tanstack-aspnet-data
 
+[![npm version](https://img.shields.io/npm/v/tanstack-aspnet-data.svg)](https://www.npmjs.com/package/tanstack-aspnet-data)
+[![npm version](https://img.shields.io/npm/v/@tanstack-aspnet-data/react.svg?label=react)](https://www.npmjs.com/package/@tanstack-aspnet-data/react)
+[![npm version](https://img.shields.io/npm/v/@tanstack-aspnet-data/vue.svg?label=vue)](https://www.npmjs.com/package/@tanstack-aspnet-data/vue)
+
 **Server-side data adapter for TanStack Table + ASP.NET Core.**
+
+> **Live demo:** [React demo](https://tanstack-react-demo.vercel.app) · [Vue demo](https://tanstack-vue-demo.vercel.app) · [API (Railway)](https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true)
 
 Turns TanStack Table state into [DevExtreme.AspNet.Data](https://github.com/DevExpress/DevExtreme.AspNet.Data)
 queries — so filtering, sorting and paging are executed **in SQL by EF Core**
@@ -163,13 +169,31 @@ Returns `{ table, rows, totalCount, pageCount, isFetching, isError, error, refet
 
 ## Examples
 
-[`examples/`](./examples) contains a runnable end-to-end stack:
+[`examples/`](./examples) contains a runnable end-to-end stack.
+
+Live (prod API on Railway):
+
+- React: https://tanstack-react-demo.vercel.app
+- Vue: https://tanstack-vue-demo.vercel.app
+- API: https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true
+
+Local:
 
 ```bash
 cd examples/api && dotnet run     # ASP.NET Core + EF Core + SQLite on :5055 (250 seeded products)
 pnpm --filter vue-demo dev        # http://localhost:5174
 pnpm --filter react-demo dev      # http://localhost:5173
 ```
+
+Deploying the demos on Vercel (2 projects, same repo):
+
+- Root Directory: `./` (repo root)
+- Install Command: `pnpm install --frozen-lockfile`
+- Build Command: `pnpm --filter react-demo build` (or `pnpm --filter vue-demo build`)
+- Output Directory: `examples/react-demo/dist` (or `examples/vue-demo/dist`)
+- Env: `VITE_API_URL=https://tanstack-aspnet-data-production.up.railway.app/api/products`
+
+`examples/*/​.env.production` already points to Railway, so a plain `vite build` works even without env.
 
 ## Roadmap
 

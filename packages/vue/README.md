@@ -1,5 +1,9 @@
 # @tanstack-aspnet-data/vue
 
+[![npm version](https://img.shields.io/npm/v/@tanstack-aspnet-data/vue.svg)](https://www.npmjs.com/package/@tanstack-aspnet-data/vue)
+
+> **Live demo:** [Vue demo](https://tanstack-vue-demo.vercel.app) · [API](https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true)
+
 Vue 3 composable that turns TanStack Table (Vue) into a fully server-side
 table backed by
 [DevExtreme.AspNet.Data](https://github.com/DevExpress/DevExtreme.AspNet.Data)

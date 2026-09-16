@@ -12,6 +12,7 @@ obj/
 
 # Vite
 .vite/
+.env.local
 
 # Editors / OS
 .vscode/
