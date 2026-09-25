@@ -4,6 +4,10 @@
   "packageManager": "pnpm@9.9.0",
   "scripts": {
     "build": "pnpm -r --if-present build",
+    "build:react-demo": "pnpm -r --filter \"react-demo...\" build",
+    "build:vue-demo": "pnpm -r --filter \"vue-demo...\" build",
+    "dev:react-demo": "pnpm --filter react-demo dev",
+    "dev:vue-demo": "pnpm --filter vue-demo dev",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck"
   },

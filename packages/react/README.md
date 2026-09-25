@@ -27,6 +27,17 @@ The hook manages pagination, sorting, column filters, global filter, request
 cancellation and page-count derivation. Render `table.getHeaderGroups()` /
 `table.getRowModel().rows` with `flexRender` as usual.
 
+### Install
+
+```bash
+npm install @tanstack-aspnet-data/react @tanstack/react-table react
+```
+
+`@tanstack/react-query` is an optional peer dependency, only needed for
+`useAspNetDataQuery`. The package root re-exports that hook, so a CJS runtime
+without a bundler (plain `node`, Jest, SSR) resolves `@tanstack/react-query` at
+load time. Install it, or keep the hook out of your import if you don't need it.
+
 ### Deep-linking with `syncUrl`
 
 Pass `syncUrl: true` to mirror the table state (page, sorting, column filters,

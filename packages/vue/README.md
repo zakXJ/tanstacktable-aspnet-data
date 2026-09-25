@@ -27,6 +27,17 @@ const { table, rows, totalCount, pageCount, isFetching } = useAspNetDataTable({
 State is exposed as Vue refs; the TanStack `table` instance drives the UI as
 usual (`flexRender`, header groups, row model).
 
+### Install
+
+```bash
+npm install @tanstack-aspnet-data/vue @tanstack/vue-table vue
+```
+
+`@tanstack/vue-query` is an optional peer dependency, only needed for
+`useAspNetDataQuery`. The package root re-exports that hook, so a CJS runtime
+without a bundler (plain `node`, Jest, SSR) resolves `@tanstack/vue-query` at
+load time. Install it, or keep the hook out of your import if you don't need it.
+
 ### Deep-linking with `syncUrl`
 
 Pass `syncUrl: true` to mirror the table state (page, sorting, column filters,

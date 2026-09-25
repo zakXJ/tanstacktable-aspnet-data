@@ -94,6 +94,20 @@ headless, you keep your own UI.
 
 Vue is identical (`@tanstack-aspnet-data/vue`), with refs instead of state.
 
+`useAspNetDataQuery` is also exported from both packages and wraps the hook in
+TanStack Query. `@tanstack/react-query` / `@tanstack/vue-query` are optional
+peer dependencies: install the matching package only if you use that hook.
+
+```bash
+npm install @tanstack/react-query
+```
+
+> **Node without a bundler:** the package root re-exports the Query hook, so the
+> generated CJS build (`require('@tanstack-aspnet-data/react')`) resolves
+> `@tanstack/react-query` at load time. Bundlers tree-shake it away for you; a
+> plain `node` / Jest / SSR-CJS consumer that only wants `useAspNetDataTable`
+> should either install the peer or import the source build.
+
 ### Server
 
 ```csharp
@@ -181,17 +195,27 @@ Local:
 
 ```bash
 cd examples/api && dotnet run     # ASP.NET Core + EF Core + SQLite on :5055 (250 seeded products)
-pnpm --filter vue-demo dev        # http://localhost:5174
-pnpm --filter react-demo dev      # http://localhost:5173
+pnpm build                        # builds packages/*/dist, which the demos import
+pnpm dev:vue-demo                 # http://localhost:5174
+pnpm dev:react-demo               # http://localhost:5173
 ```
+
+The demos resolve the workspace packages through their `exports` maps, which
+point at `dist/`. `dist` is gitignored, so run `pnpm build` (or
+`pnpm build:react-demo` / `pnpm build:vue-demo`) once after cloning, otherwise
+Vite cannot resolve the import.
 
 Deploying the demos on Vercel (2 projects, same repo):
 
 - Root Directory: `./` (repo root)
 - Install Command: `pnpm install --frozen-lockfile`
-- Build Command: `pnpm --filter react-demo build` (or `pnpm --filter vue-demo build`)
+- Build Command: `pnpm run build:react-demo` (or `pnpm run build:vue-demo`)
 - Output Directory: `examples/react-demo/dist` (or `examples/vue-demo/dist`)
 - Env: `VITE_API_URL=https://tanstack-aspnet-data-production.up.railway.app/api/products`
+
+`build:react-demo` runs `pnpm -r --filter "react-demo..." build`, so the library
+packages are built before the demo. The old `pnpm --filter react-demo build`
+skips them and fails on a clean checkout.
 
 `examples/*/​.env.production` already points to Railway, so a plain `vite build` works even without env.
 

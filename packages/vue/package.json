@@ -41,6 +41,7 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
+    "@tanstack/vue-query": "^5.0.0",
     "@tanstack/vue-table": "^8.13.0",
     "vue": "^3.4.0"
   },
