@@ -10,6 +10,7 @@ namespace TanStackDemo.Api.Controllers;
 public class ProductsController(AppDbContext db) : ControllerBase {
 
     [HttpGet]
+    [HttpPost]
     public async Task<IActionResult> Get(DataSourceLoadOptions loadOptions) {
         // Case-insensitive text comparisons (contains/startswith/endswith),
         // matching what users expect from a search box.

@@ -20,9 +20,24 @@ http://localhost:5055/api/products?skip=0&take=10&requireTotalCount=true
 
 (URL-encode the JSON values in a real client. Use `mapSelector` in the demos to map TanStack column ids like `manufacturerName` → `Manufacturer.Name`.)
 
+The same keys work as a POST form-urlencoded body, which avoids URL length
+limits for large filters:
+
+```bash
+curl -X POST http://localhost:5055/api/products \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'skip=0' \
+  --data-urlencode 'take=5' \
+  --data-urlencode 'requireTotalCount=true' \
+  --data-urlencode 'sort=[{"selector":"Price","desc":true}]'
+```
+
+Malformed load options (bad JSON in `filter`/`sort`, non-numeric `take`, …)
+return `400` with a `ValidationProblemDetails` body rather than a bare `500`.
+
 ## Files of interest
 
-- `DataSourceLoadOptions.cs` — model binder adapted from DevExpress' MIT sample; copy it into your project to bind `DataSourceLoadOptions` on any controller action.
+- `DataSourceLoadOptions.cs` — model binder adapted from DevExpress' MIT sample; copy it into your project to bind `DataSourceLoadOptions` on any controller action. It reports parse failures through `ModelState` so `[ApiController]` turns them into a `400`.
 - `Controllers/ProductsController.cs` — the entire server-side implementation.
 - `DbSeed.cs` — deterministic seed data.
 
