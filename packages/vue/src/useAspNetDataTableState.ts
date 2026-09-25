@@ -256,6 +256,9 @@ export function useAspNetDataTableState<TData>(
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
+    get pageCount() {
+      return pageCount.value
+    },
     state: {
       get pagination() {
         return pagination.value

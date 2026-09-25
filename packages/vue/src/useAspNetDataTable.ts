@@ -280,6 +280,13 @@ export function useAspNetDataTable<TData>(
     }
   }
 
+  const pageCount = computed(() => {
+    const pageSize = pagination.value.pageSize
+    if (!pageSize || pageSize <= 0) return 1
+    if (totalCount.value === undefined) return -1
+    return Math.max(1, Math.ceil((totalCount.value ?? 0) / pagination.value.pageSize))
+  })
+
   const table = useVueTable<TData>({
     get data() {
       return rows.value
@@ -291,6 +298,9 @@ export function useAspNetDataTable<TData>(
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
+    get pageCount() {
+      return pageCount.value
+    },
     state: {
       get pagination() {
         return pagination.value
@@ -334,13 +344,6 @@ export function useAspNetDataTable<TData>(
         },
       )
     },
-  })
-
-  const pageCount = computed(() => {
-    const pageSize = pagination.value.pageSize
-    if (!pageSize || pageSize <= 0) return 1
-    if (totalCount.value === undefined) return -1
-    return Math.max(1, Math.ceil((totalCount.value ?? 0) / pagination.value.pageSize))
   })
 
   return { table, rows, totalCount, pageCount, isFetching, isError, error, refetch }

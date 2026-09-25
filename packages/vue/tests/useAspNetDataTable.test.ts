@@ -46,6 +46,20 @@ describe('useAspNetDataTable (vue)', () => {
     expect(requests[0]!.searchParams.get('take')).toBe('25')
   })
 
+  it('feeds the server pageCount into the table so next-page navigation works', async () => {
+    const getResult = mountTable()
+    await waitFor(() => expect(getResult().rows.value.length).toBe(products.length))
+
+    await waitFor(() => expect(getResult().table.getPageCount()).toBe(Math.ceil(123 / 25)))
+    expect(getResult().table.getCanNextPage()).toBe(true)
+    expect(getResult().table.getCanPreviousPage()).toBe(false)
+
+    getResult().table.setPagination({ pageIndex: 4, pageSize: 25 })
+
+    await waitFor(() => expect(getResult().table.getCanNextPage()).toBe(false))
+    expect(getResult().table.getCanPreviousPage()).toBe(true)
+  })
+
   it('refetches with pagination changes', async () => {
     const getResult = mountTable()
     await waitFor(() => expect(getResult().rows.value.length).toBeGreaterThan(0))
