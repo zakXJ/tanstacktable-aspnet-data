@@ -150,7 +150,12 @@ export function createAspNetDataAdapter(options: AspNetDataAdapterOptions): Data
       }
 
       if (!response.ok) {
-        throw new AspNetDataError(`Request failed with status ${response.status}.`, response.status)
+        // Surface the server's own explanation (validation problems, selector
+        // errors) instead of a bare status. Truncated so a huge HTML error page
+        // can't flood logs or the UI.
+        const body = (await response.text().catch(() => '')).trim().slice(0, 2000)
+        const detail = body ? `: ${body}` : '.'
+        throw new AspNetDataError(`Request failed with status ${response.status}${detail}`, response.status, body || undefined)
       }
 
       let payload: unknown

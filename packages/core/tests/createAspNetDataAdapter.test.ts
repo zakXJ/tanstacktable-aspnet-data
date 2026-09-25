@@ -53,6 +53,27 @@ describe('createAspNetDataAdapter — GET', () => {
     })
   })
 
+  it('includes the server error body in the thrown message', async () => {
+    server.use(
+      http.get(
+        'http://test.local/api/products',
+        () =>
+          new HttpResponse(
+            JSON.stringify({ errors: { loadOptions: ['Invalid DataSourceLoadOptions'] } }),
+            { status: 400, headers: { 'Content-Type': 'application/problem+json' } },
+          ),
+      ),
+    )
+    const adapter = createAspNetDataAdapter({ endpoint: 'http://test.local/api/products' })
+
+    await expect(adapter({})).rejects.toMatchObject({
+      name: 'AspNetDataError',
+      status: 400,
+      body: expect.stringContaining('Invalid DataSourceLoadOptions'),
+    })
+    await expect(adapter({})).rejects.toThrow(/status 400.*Invalid DataSourceLoadOptions/)
+  })
+
   it('propagates abort errors untouched', async () => {
     const controller = new AbortController()
     const adapter = createAspNetDataAdapter({

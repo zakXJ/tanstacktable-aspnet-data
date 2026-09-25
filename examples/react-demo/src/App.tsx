@@ -104,7 +104,7 @@ export default function App() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
-  const { table, totalCount, pageCount, isFetching, isError } = useAspNetDataTable<Product>({
+  const { table, totalCount, pageCount, isFetching, isError, error, refetch } = useAspNetDataTable<Product>({
     endpoint: API_URL,
     columns,
     mapSelector,
@@ -261,7 +261,14 @@ export default function App() {
           ))}
         </select>
         <span className="status">{isFetching ? 'Loading…' : `${totalCount ?? '?'} results`}</span>
-        {isError && <span className="error">Request failed — is the API running on :5055?</span>}
+        {isError && (
+          <span className="error">
+            {error instanceof Error ? error.message : 'Request failed'} — is the API reachable?
+            <button type="button" onClick={refetch} style={{ marginLeft: 8 }}>
+              Retry
+            </button>
+          </span>
+        )}
       </div>
 
       <div className="toolbar" style={{ flexWrap: 'wrap', gap: 12, marginTop: 8 }}>

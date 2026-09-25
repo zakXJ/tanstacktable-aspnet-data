@@ -5,10 +5,13 @@
  */
 export class AspNetDataError extends Error {
   readonly status?: number
+  /** Raw response body, truncated, when the server sent one with a failed status. */
+  readonly body?: string
 
-  constructor(message: string, status?: number) {
+  constructor(message: string, status?: number, body?: string) {
     super(message)
     this.name = 'AspNetDataError'
     this.status = status
+    this.body = body
   }
 }

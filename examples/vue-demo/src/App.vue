@@ -101,7 +101,7 @@ const isActiveFilter = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
 
-const { table, totalCount, pageCount, isFetching, isError } = useAspNetDataTable<Product>({
+const { table, totalCount, pageCount, isFetching, isError, error, refetch } = useAspNetDataTable<Product>({
   endpoint: API_URL,
   columns,
   mapSelector,
@@ -229,7 +229,13 @@ function toggleCategory(cat: string) {
     <span class="status">
       {{ isFetching ? 'Loading…' : `${totalCount ?? '?'} results` }}
     </span>
-    <span v-if="isError" class="error">Request failed — is the API running on :5055?</span>
+    <span v-if="isError" class="error">
+      {{ error instanceof Error ? error.message : 'Request failed' }} — is the
+      API reachable?
+      <button type="button" @click="refetch()" style="margin-left: 8px">
+        Retry
+      </button>
+    </span>
   </div>
 
   <div class="toolbar" style="flex-wrap: wrap; gap: 12px; margin-top: 8px">
