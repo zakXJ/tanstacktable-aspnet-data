@@ -72,3 +72,20 @@ useAspNetDataTable({
   globalFilterDebounceMs: 300,
 })
 ```
+
+### TanStack Query integration
+
+`useAspNetDataQuery` delegates fetching, caching and retries to
+`@tanstack/react-query`. It lives in a separate entry point so that
+`@tanstack/react-query` stays a genuinely optional peer — importing
+`@tanstack-aspnet-data/react` does not require it.
+
+```tsx
+import { useAspNetDataQuery } from '@tanstack-aspnet-data/react/query'
+
+const { table, rows, totalCount, isFetching } = useAspNetDataQuery({
+  endpoint: '/api/products',
+  columns,
+  staleTime: 30_000,
+})
+```

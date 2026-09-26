@@ -3,11 +3,9 @@ export {
   type UseAspNetDataTableOptions,
   type UseAspNetDataTableResult,
 } from './useAspNetDataTable'
-export {
-  useAspNetDataQuery,
-  type UseAspNetDataQueryOptions,
-  type UseAspNetDataQueryResult,
-} from './query'
+// useAspNetDataQuery is NOT re-exported here: it imports @tanstack/react-query
+// at module scope, which would make that optional peer mandatory. It is
+// available from the '@tanstack-aspnet-data/react/query' subpath.
 export type {
   BuildQueryOptions,
   FilterOperator,

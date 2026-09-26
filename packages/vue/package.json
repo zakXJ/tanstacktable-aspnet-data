@@ -1,6 +1,6 @@
 {
   "name": "@tanstack-aspnet-data/vue",
-  "version": "0.1.0-next.1",
+  "version": "0.1.0-next.2",
   "description": "Vue 3 composable: server-side TanStack Table backed by DevExtreme.AspNet.Data (ASP.NET Core + EF Core).",
   "license": "MIT",
   "repository": {

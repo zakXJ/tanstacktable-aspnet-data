@@ -72,3 +72,20 @@ useAspNetDataTable({
   globalFilterDebounceMs: 300,
 })
 ```
+
+### TanStack Query integration
+
+`useAspNetDataQuery` delegates fetching, caching and retries to
+`@tanstack/vue-query`. It lives in a separate entry point so that
+`@tanstack/vue-query` stays a genuinely optional peer — importing
+`@tanstack-aspnet-data/vue` does not require it.
+
+```ts
+import { useAspNetDataQuery } from '@tanstack-aspnet-data/vue/query'
+
+const { table, rows, totalCount, isFetching } = useAspNetDataQuery({
+  endpoint: '/api/products',
+  columns,
+  staleTime: 30_000,
+})
+```
