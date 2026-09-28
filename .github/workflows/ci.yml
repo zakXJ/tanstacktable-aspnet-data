@@ -38,3 +38,54 @@ jobs:
           dotnet-version: 10.x
 
       - run: dotnet build examples/api
+
+  e2e:
+    name: E2E (Node → API → EF Core → SQLite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter tanstack-aspnet-data build
+
+      - run: dotnet build examples/api -c Release
+
+      - name: Start API in background
+        run: |
+          dotnet run --project examples/api -c Release --no-build &
+          echo $! > /tmp/api.pid
+
+      - name: Wait for API health
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:5055/health > /dev/null; then
+              echo "API up after ${i} attempt(s)"
+              break
+            fi
+            sleep 2
+            if [ "$i" = 60 ]; then
+              echo "API did not start in time"
+              exit 1
+            fi
+          done
+
+      - name: Run live scenarios
+        run: node examples/e2e/live.mjs
+        env:
+          E2E_API_URL: http://localhost:5055/api/products
+
+      - name: Stop API
+        if: always()
+        run: kill $(cat /tmp/api.pid) || true

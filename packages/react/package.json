@@ -3,6 +3,10 @@
   "version": "0.1.0-next.3",
   "description": "React hook for tanstack-aspnet-data: server-side TanStack Table backed by DevExtreme.AspNet.Data (ASP.NET Core + EF Core).",
   "license": "MIT",
+  "author": {
+    "name": "zakXJ",
+    "url": "https://github.com/zakXJ"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/zakXJ/tanstacktable-aspnet-data.git"
@@ -11,7 +15,7 @@
   "bugs": {
     "url": "https://github.com/zakXJ/tanstacktable-aspnet-data/issues"
   },
-  "keywords": ["tanstack", "tanstack-table", "react", "aspnet", "devextreme", "ef-core"],
+  "keywords": ["tanstack", "tanstack-table", "react", "aspnet", "aspnet-core", "devextreme", "ef-core", "server-side", "data-grid", "pagination", "sorting", "filtering", "typescript"],
   "publishConfig": {
     "access": "public"
   },

@@ -3,6 +3,9 @@
 [![npm version](https://img.shields.io/npm/v/tanstack-aspnet-data.svg)](https://www.npmjs.com/package/tanstack-aspnet-data)
 [![npm version](https://img.shields.io/npm/v/@tanstack-aspnet-data/react.svg?label=react)](https://www.npmjs.com/package/@tanstack-aspnet-data/react)
 [![npm version](https://img.shields.io/npm/v/@tanstack-aspnet-data/vue.svg?label=vue)](https://www.npmjs.com/package/@tanstack-aspnet-data/vue)
+[![CI](https://github.com/zakXJ/tanstacktable-aspnet-data/actions/workflows/ci.yml/badge.svg)](https://github.com/zakXJ/tanstacktable-aspnet-data/actions/workflows/ci.yml)
+[![npm downloads](https://img.shields.io/npm/dm/tanstack-aspnet-data.svg)](https://www.npmjs.com/package/tanstack-aspnet-data)
+[![license](https://img.shields.io/npm/l/tanstack-aspnet-data.svg)](./LICENSE)
 
 **Server-side data adapter for TanStack Table + ASP.NET Core.**
 

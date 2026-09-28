@@ -3,6 +3,10 @@
   "version": "0.1.0-next.3",
   "description": "Server-side data adapter: TanStack Table state to DevExtreme.AspNet.Data wire format (ASP.NET Core + EF Core). No DevExtreme UI required.",
   "license": "MIT",
+  "author": {
+    "name": "zakXJ",
+    "url": "https://github.com/zakXJ"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/zakXJ/tanstacktable-aspnet-data.git"
@@ -11,7 +15,7 @@
   "bugs": {
     "url": "https://github.com/zakXJ/tanstacktable-aspnet-data/issues"
   },
-  "keywords": ["tanstack", "tanstack-table", "aspnet", "asp.net", "devextreme", "ef-core", "efcore"],
+  "keywords": ["tanstack", "tanstack-table", "aspnet", "asp.net", "aspnet-core", "devextreme", "ef-core", "efcore", "entity-framework-core", "server-side", "data-grid", "pagination", "sorting", "filtering", "typescript"],
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
