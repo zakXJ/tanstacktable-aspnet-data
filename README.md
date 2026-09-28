@@ -67,6 +67,18 @@ EF Core
 | [`@tanstack-aspnet-data/react`](./packages/react) | `useAspNetDataTable()` for React |
 | [`@tanstack-aspnet-data/vue`](./packages/vue) | `useAspNetDataTable()` for Vue 3 |
 
+## Requirements
+
+| Dependency | Version |
+| --- | --- |
+| `@tanstack/react-table` / `@tanstack/vue-table` | `^8.13` |
+| `react` | `^18 \|\| ^19` |
+| `vue` | `^3.4` |
+| `@tanstack/react-query` / `@tanstack/vue-query` | `^5`, optional (`/query` entry point only) |
+| `DevExtreme.AspNet.Data` (server) | `5.1.0` |
+| .NET (example API) | `net10.0` |
+| Node (build/test) | `>=18` |
+
 ## Quick start
 
 ### Client
@@ -94,19 +106,11 @@ headless, you keep your own UI.
 
 Vue is identical (`@tanstack-aspnet-data/vue`), with refs instead of state.
 
-`useAspNetDataQuery` is also exported from both packages and wraps the hook in
-TanStack Query. `@tanstack/react-query` / `@tanstack/vue-query` are optional
-peer dependencies: install the matching package only if you use that hook.
-
-```bash
-npm install @tanstack/react-query
-```
-
-> **Node without a bundler:** the package root re-exports the Query hook, so the
-> generated CJS build (`require('@tanstack-aspnet-data/react')`) resolves
-> `@tanstack/react-query` at load time. Bundlers tree-shake it away for you; a
-> plain `node` / Jest / SSR-CJS consumer that only wants `useAspNetDataTable`
-> should either install the peer or import the source build.
+`useAspNetDataQuery` variants delegate fetching to TanStack Query and live in
+separate entry points (`@tanstack-aspnet-data/react/query`,
+`@tanstack-aspnet-data/vue/query`), so `@tanstack/react-query` /
+`@tanstack/vue-query` stay genuinely optional peers — importing the package
+root never requires them. See the React/Vue package READMEs for details.
 
 ### Server
 
@@ -178,6 +182,9 @@ then is AND-combined with column filters. Need something else?
 | `initialPagination` / `initialSorting` / `initialColumnFilters` / `initialGlobalFilter` | — | Initial state |
 | `enabled` | `true` | Pause fetching |
 | `resetPageIndexOnChange` | `true` | Back to page 0 when sorting/filters change |
+| `syncUrl` | `false` | Mirror table state into the URL (`true`, or `{ mode: 'replace' \| 'push', prefix, defaultPageSize }`) |
+| `globalFilterDebounceMs` / `columnFilterDebounceMs` | `0` | Delay requests until typing stops (`0` = immediate) |
+| `cache` | `false` | `true` for default in-memory cache, object for options, or custom `DataCache` |
 
 Returns `{ table, rows, totalCount, pageCount, isFetching, isError, error, refetch }`.
 
@@ -228,3 +235,6 @@ skips them and fails on a clean checkout.
 
 [MIT](./LICENSE). The example's model binder is adapted from the MIT-licensed
 DevExtreme.AspNet.Data sample.
+
+Community package — not affiliated with or endorsed by TanStack
+(TanStack Table) or DevExpress (DevExtreme).

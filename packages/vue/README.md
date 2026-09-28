@@ -34,9 +34,8 @@ npm install @tanstack-aspnet-data/vue @tanstack/vue-table vue
 ```
 
 `@tanstack/vue-query` is an optional peer dependency, only needed for
-`useAspNetDataQuery`. The package root re-exports that hook, so a CJS runtime
-without a bundler (plain `node`, Jest, SSR) resolves `@tanstack/vue-query` at
-load time. Install it, or keep the hook out of your import if you don't need it.
+`useAspNetDataQuery` (imported from `@tanstack-aspnet-data/vue/query`).
+Importing the package root never requires it.
 
 ### Deep-linking with `syncUrl`
 
@@ -89,3 +88,6 @@ const { table, rows, totalCount, isFetching } = useAspNetDataQuery({
   staleTime: 30_000,
 })
 ```
+
+Community package — not affiliated with or endorsed by TanStack
+(TanStack Table) or DevExpress (DevExtreme).

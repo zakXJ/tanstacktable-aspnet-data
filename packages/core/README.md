@@ -6,6 +6,10 @@
 
 Framework-agnostic core of the TanStack Table ↔ ASP.NET Core bridge.
 
+```bash
+npm install tanstack-aspnet-data
+```
+
 It converts a TanStack Table state snapshot into the exact wire format parsed
 by [DevExtreme.AspNet.Data](https://github.com/DevExpress/DevExtreme.AspNet.Data)'s
 `DataSourceLoadOptions`, and normalizes the `LoadResult` response.
@@ -52,3 +56,6 @@ decodeTableState(params, { prefix: 'tbl_' })
 ```
 
 See the repository README for the React and Vue hooks.
+
+Community package — not affiliated with or endorsed by TanStack
+(TanStack Table) or DevExpress (DevExtreme).
