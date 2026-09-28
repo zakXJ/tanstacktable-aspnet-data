@@ -1,6 +1,6 @@
 {
   "name": "@tanstack-aspnet-data/react",
-  "version": "0.1.0-next.2",
+  "version": "0.1.0-next.3",
   "description": "React hook for tanstack-aspnet-data: server-side TanStack Table backed by DevExtreme.AspNet.Data (ASP.NET Core + EF Core).",
   "license": "MIT",
   "repository": {
