@@ -1,16 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { MutableRefObject } from 'react'
-import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import { useEffect, useRef, useState } from 'react'
 import type {
   ColumnDef,
   ColumnFiltersState,
   PaginationState,
   SortingState,
   Table,
-  Updater,
 } from '@tanstack/react-table'
-import { createAspNetDataAdapter, createMemoryCache, decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
+import { createAspNetDataAdapter } from 'tanstack-aspnet-data'
 import type { BuildQueryOptions, DataCache, FilterOperator, MemoryCacheOptions, SelectorMapper, UrlSyncOptions } from 'tanstack-aspnet-data'
+import { useAspNetDataTableState } from './useAspNetDataTableState'
+import { useAspNetTable, useCacheInstance } from './internal'
 
 export interface UseAspNetDataTableOptions<TData> {
   /** Endpoint bound to DevExtreme.AspNet.Data's `DataSourceLoadOptions`. */
@@ -73,18 +72,13 @@ export interface UseAspNetDataTableResult<TData> {
   refetch: () => void
 }
 
-function applyUpdater<T>(updater: Updater<T>, old: T): T {
-  return typeof updater === 'function' ? (updater as (old: T) => T)(old) : updater
-}
-
 /**
  * Server-side TanStack Table for ASP.NET Core endpoints powered by
  * DevExtreme.AspNet.Data.
  *
- * The hook owns pagination/sorting/filter state, keeps TanStack in manual
- * server-side mode, fetches pages with request cancellation, derives
- * `pageCount` from `totalCount` and resets to page 0 when sorting or filters
- * change.
+ * Table state (pagination/sorting/filters, URL sync, debounce) is owned by
+ * `useAspNetDataTableState`; this hook adds manual fetching with request
+ * cancellation on top of it.
  */
 export function useAspNetDataTable<TData>(
   options: UseAspNetDataTableOptions<TData>,
@@ -93,81 +87,31 @@ export function useAspNetDataTable<TData>(
     endpoint,
     method = 'GET',
     enabled = true,
-    resetPageIndexOnChange = true,
-    syncUrl = false,
-    globalFilterDebounceMs = 0,
-    columnFilterDebounceMs = 0,
     cache = false,
   } = options
-
-  const urlSync: UrlSyncOptions | null = useMemo(
-    () => (typeof syncUrl === 'object' ? syncUrl : syncUrl ? {} : null),
-    [syncUrl],
-  )
-  const urlOptions: UrlSyncOptions | null = useMemo(
-    () => (urlSync ? { defaultPageSize: options.initialPagination?.pageSize ?? 25, ...urlSync } : null),
-    [urlSync, options.initialPagination?.pageSize],
-  )
-
-  const optionsRef = useRef(options)
-  optionsRef.current = options
-
-  const globalFilterTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const columnFilterTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  // Create or use provided cache instance
-  const cacheInstance = useMemo<DataCache | undefined>(() => {
-    if (!cache) return undefined
-    if (typeof cache === 'object' && 'get' in cache && 'set' in cache) {
-      return cache as DataCache
-    }
-    return createMemoryCache(typeof cache === 'object' ? cache : {})
-  }, [cache])
-
-  function debounced(
-    timer: MutableRefObject<ReturnType<typeof setTimeout> | undefined>,
-    ms: number | undefined,
-    action: () => void,
-  ) {
-    if (ms && ms > 0) {
-      if (timer.current) clearTimeout(timer.current)
-      timer.current = setTimeout(action, ms)
-    } else {
-      action()
-    }
-  }
-
-  const initialFromUrl =
-    urlOptions && typeof window !== 'undefined'
-      ? decodeTableState(window.location.search, urlOptions)
-      : {}
-
-  const [pagination, setPagination] = useState<PaginationState>(
-    () => ({
-      pageIndex: initialFromUrl.pagination?.pageIndex ?? options.initialPagination?.pageIndex ?? 0,
-      pageSize: initialFromUrl.pagination?.pageSize ?? options.initialPagination?.pageSize ?? 25,
-    }),
-  )
-  const [sorting, setSorting] = useState<SortingState>(
-    () => (initialFromUrl.sorting ? ([...initialFromUrl.sorting] as SortingState) : (options.initialSorting ?? [])),
-  )
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    () => (initialFromUrl.columnFilters ? ([...initialFromUrl.columnFilters] as ColumnFiltersState) : (options.initialColumnFilters ?? [])),
-  )
-  const [globalFilter, setGlobalFilter] = useState<any>(
-    () => (initialFromUrl.globalFilter !== undefined ? initialFromUrl.globalFilter : options.initialGlobalFilter ?? ''),
-  )
 
   const [rows, setRows] = useState<TData[]>([])
   const [totalCount, setTotalCount] = useState<number>()
   const [isFetching, setIsFetching] = useState(false)
   const [isError, setIsError] = useState(false)
   const [error, setError] = useState<unknown>(null)
-  const [nonce, setNonce] = useState(0)
 
-  // The serialized state is the single fetch trigger: any change to
-  // pagination/sorting/filters produces a new key and re-runs the effect.
-  const requestKey = JSON.stringify({ pagination, sorting, columnFilters, globalFilter })
+  const tableState = useAspNetDataTableState({
+    initialPagination: options.initialPagination,
+    initialSorting: options.initialSorting,
+    initialColumnFilters: options.initialColumnFilters,
+    initialGlobalFilter: options.initialGlobalFilter,
+    resetPageIndexOnChange: options.resetPageIndexOnChange,
+    syncUrl: options.syncUrl,
+    globalFilterDebounceMs: options.globalFilterDebounceMs,
+    columnFilterDebounceMs: options.columnFilterDebounceMs,
+  })
+
+  const optionsRef = useRef(options)
+  optionsRef.current = options
+
+  // Create or use provided cache instance
+  const cacheInstance = useCacheInstance(cache)
 
   useEffect(() => {
     if (!enabled) {
@@ -195,7 +139,12 @@ export function useAspNetDataTable<TData>(
       cache: cacheInstance,
     })
     adapter<TData>(
-      { pagination, sorting, columnFilters, globalFilter },
+      {
+        pagination: tableState.pagination,
+        sorting: tableState.sorting,
+        columnFilters: tableState.columnFilters,
+        globalFilter: tableState.globalFilter,
+      },
       controller.signal,
     )
       .then((result) => {
@@ -213,107 +162,16 @@ export function useAspNetDataTable<TData>(
 
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, method, enabled, requestKey, nonce])
+  }, [endpoint, method, enabled, tableState.requestKey, tableState.nonce])
 
-  // Reflect the current state into the URL when syncUrl is enabled. replaceState
-  // (default) avoids polluting history; popstate below re-syncs on back/forward.
-  useEffect(() => {
-    if (!urlOptions || typeof window === 'undefined') return
-    const params = encodeTableState({ pagination, sorting, columnFilters, globalFilter }, urlOptions)
-    const qs = params.toString()
-    const url = window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash
-    if (urlOptions.mode === 'push') window.history.pushState(null, '', url)
-    else window.history.replaceState(null, '', url)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestKey, nonce, urlOptions])
-
-  useEffect(() => {
-    if (!urlOptions || typeof window === 'undefined') return
-    const onPop = () => {
-      const next = decodeTableState(window.location.search, urlOptions)
-      if (next.pagination) {
-        setPagination({
-          pageIndex: next.pagination.pageIndex ?? 0,
-          pageSize: next.pagination.pageSize ?? 25,
-        })
-      }
-      if (next.sorting) setSorting([...next.sorting] as SortingState)
-      if (next.columnFilters) setColumnFilters([...next.columnFilters] as ColumnFiltersState)
-      if (next.globalFilter !== undefined) setGlobalFilter(next.globalFilter)
-    }
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  }, [urlSync])
-
-  useEffect(() => {
-    return () => {
-      if (globalFilterTimer.current) clearTimeout(globalFilterTimer.current)
-      if (columnFilterTimer.current) clearTimeout(columnFilterTimer.current)
-    }
-  }, [])
-
-  const refetch = useCallback(() => setNonce((value) => value + 1), [])
-
-  const onPaginationChange = useCallback((updater: Updater<PaginationState>) => {
-    setPagination((old) => applyUpdater(updater, old))
-  }, [])
-
-  const resetPageIndex = useCallback(() => {
-    if (!resetPageIndexOnChange) return
-    setPagination((page) => (page.pageIndex === 0 ? page : { ...page, pageIndex: 0 }))
-  }, [resetPageIndexOnChange])
-
-  const onSortingChange = useCallback(
-    (updater: Updater<SortingState>) => {
-      setSorting((old) => applyUpdater(updater, old))
-      resetPageIndex()
-    },
-    [resetPageIndex],
-  )
-
-  const onColumnFiltersChange = useCallback(
-    (updater: Updater<ColumnFiltersState>) => {
-      debounced(columnFilterTimer, columnFilterDebounceMs, () => {
-        setColumnFilters((old) => applyUpdater(updater, old))
-        resetPageIndex()
-      })
-    },
-    [resetPageIndex, columnFilterDebounceMs],
-  )
-
-  const onGlobalFilterChange = useCallback(
-    (updater: Updater<any>) => {
-      debounced(globalFilterTimer, globalFilterDebounceMs, () => {
-        setGlobalFilter((old: any) => applyUpdater(updater, old))
-        resetPageIndex()
-      })
-    },
-    [resetPageIndex, globalFilterDebounceMs],
-  )
-
-  const pageCount = useMemo(() => {
-    const pageSize = pagination.pageSize
-    if (!pageSize || pageSize <= 0) return 1
-    if (totalCount === undefined) return -1
-    return Math.max(1, Math.ceil(totalCount / pageSize))
-  }, [totalCount, pagination.pageSize])
-
-  const table = useReactTable({
-    data: rows,
+  const { table, pageCount } = useAspNetTable({
     columns: options.columns,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    manualSorting: true,
-    manualFiltering: true,
-    pageCount,
-    state: { pagination, sorting, columnFilters, globalFilter },
-    onPaginationChange,
-    onSortingChange,
-    onColumnFiltersChange,
-    onGlobalFilterChange,
+    data: rows,
+    totalCount,
+    state: tableState,
   })
 
-  return { table, rows, totalCount, pageCount, isFetching, isError, error, refetch }
+  return { table, rows, totalCount, pageCount, isFetching, isError, error, refetch: tableState.refetch }
 }
 
 export type { BuildQueryOptions, FilterOperator, SelectorMapper }

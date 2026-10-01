@@ -89,5 +89,22 @@ const { table, rows, totalCount, isFetching } = useAspNetDataQuery({
 })
 ```
 
+### Headless state without fetching
+
+`useAspNetDataTableState()` owns pagination/sorting/filter state, URL
+synchronization, debounced filter handling and request-key derivation without
+fetching anything. Both `useAspNetDataTable` and `useAspNetDataQuery` are
+built on top of it. Use it directly when you drive fetching yourself:
+
+```tsx
+import { useAspNetDataTableState } from '@tanstack-aspnet-data/react'
+import { createAspNetDataAdapter } from 'tanstack-aspnet-data'
+
+const state = useAspNetDataTableState({ syncUrl: true })
+// state.pagination, state.sorting, state.columnFilters, state.globalFilter,
+// state.requestKey, state.onSortingChange, … — fetch when requestKey changes,
+// then render with useReactTable.
+```
+
 Community package — not affiliated with or endorsed by TanStack
 (TanStack Table) or DevExpress (DevExtreme).
