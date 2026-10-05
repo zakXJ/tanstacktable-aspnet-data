@@ -87,8 +87,8 @@ EF Core
 ### Client
 
 ```bash
-npm install tanstack-aspnet-data @tanstack/react-table
-# or: npm install @tanstack-aspnet-data/react @tanstack/react-table react
+npm install @tanstack-aspnet-data/react @tanstack/react-table react
+# or for Vue: npm install @tanstack-aspnet-data/vue @tanstack/vue-table vue
 ```
 
 ```tsx
@@ -114,6 +114,11 @@ separate entry points (`@tanstack-aspnet-data/react/query`,
 `@tanstack-aspnet-data/vue/query`), so `@tanstack/react-query` /
 `@tanstack/vue-query` stay genuinely optional peers — importing the package
 root never requires them. See the React/Vue package READMEs for details.
+
+Cached requests are deduplicated without coupling consumer cancellation: each
+caller can abort independently while the shared network request completes and
+warms the cache. Calling `refetch()` always bypasses cached and in-flight data,
+then replaces the cached value with the fresh response.
 
 ### Server
 
@@ -189,6 +194,12 @@ then is AND-combined with column filters. Need something else?
 | `globalFilterDebounceMs` / `columnFilterDebounceMs` | `0` | Delay requests until typing stops (`0` = immediate) |
 | `cache` | `false` | `true` for default in-memory cache, object for options, or custom `DataCache` |
 
+`syncUrl` preserves query parameters owned by the rest of the application.
+Back/forward navigation also resets table fields that disappear from the URL.
+Query-based hooks accept `queryKeyScope` to partition data by user or tenant;
+their keys already include the endpoint, method, effective wire query and a
+non-plaintext fingerprint of request headers.
+
 Returns `{ table, rows, totalCount, pageCount, isFetching, isError, error, refetch }`.
 
 ## Examples
@@ -209,6 +220,11 @@ pnpm build                        # builds packages/*/dist, which the demos impo
 pnpm dev:vue-demo                 # http://localhost:5174
 pnpm dev:react-demo               # http://localhost:5173
 ```
+
+The API validates selectors against its projection and supports optional
+`DataLoading` limits. Numeric limits are disabled until configured; production
+recommendations are `MaxTake=100`, `MaxFilterNodes=64`, `MaxSorts=8`. See the
+API README for configuration and migration details.
 
 The demos resolve the workspace packages through their `exports` maps, which
 point at `dist/`. `dist` is gitignored, so run `pnpm build` (or

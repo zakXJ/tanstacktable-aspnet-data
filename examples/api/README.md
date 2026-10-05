@@ -34,11 +34,52 @@ curl -X POST http://localhost:5055/api/products \
 
 Malformed load options (bad JSON in `filter`/`sort`, non-numeric `take`, …)
 return `400` with a `ValidationProblemDetails` body rather than a bare `500`.
+Unknown selectors and disabled operations return a generic `400` response;
+details are written to server logs only.
+
+## Query limits
+
+The endpoint always checks selectors against the fields projected by
+`ProductsController`. Numeric limits are optional and disabled by default so
+the example remains configurable. Recommended production settings:
+
+```json
+{
+  "DataLoading": {
+    "MaxTake": 100,
+    "MaxFilterNodes": 64,
+    "MaxSorts": 8
+  }
+}
+```
+
+Equivalent environment variables are `DataLoading__MaxTake`,
+`DataLoading__MaxFilterNodes` and `DataLoading__MaxSorts`. `AllowedSelectors`
+can override the controller defaults, for example
+`DataLoading__AllowedSelectors__0=Name`.
+
+When `MaxTake` is configured, omitted or larger page sizes are capped. Grouping,
+summaries and remote projections remain disabled for this endpoint.
+
+## Database and health
+
+Startup applies EF Core migrations, seeds deterministic data and fails fast if
+database initialization fails. `/health` checks the actual `AppDbContext`.
+Override SQLite with `ConnectionStrings__Products`, for example
+`Data Source=/data/products.db`.
+
+Databases created before this migration-enabled revision have no EF migration
+history. For this disposable demo database, stop the API and delete the old
+`products.db` once; the next start recreates and seeds it through migrations.
+Do not use that deletion procedure for application data—create a baseline
+migration instead.
 
 ## Files of interest
 
 - `DataSourceLoadOptions.cs` — model binder adapted from DevExpress' MIT sample; copy it into your project to bind `DataSourceLoadOptions` on any controller action. It reports parse failures through `ModelState` so `[ApiController]` turns them into a `400`.
 - `Controllers/ProductsController.cs` — the entire server-side implementation.
+- `DataLoadingOptions.cs` — selector validation and configurable query limits.
+- `Migrations/` — the SQLite schema managed by EF Core.
 - `DbSeed.cs` — deterministic seed data.
 
 ## Notes

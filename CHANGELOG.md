@@ -6,6 +6,35 @@ the first stable `0.1.0`.
 
 ## [Unreleased]
 
+### Added
+- Independent cancellation for deduplicated requests and explicit
+  `cacheMode: 'reload'` support.
+- Deterministic request identities with header fingerprints and optional
+  `queryKeyScope` partitioning for React Query and Vue Query.
+- `mergeTableStateSearchParams`, plus `delete`/`clear` on the memory cache.
+- Configurable ASP.NET query limits, selector validation, EF migrations,
+  database-backed health checks and server tests.
+- ESLint, coverage thresholds, Node 18/20/22 library CI and npm entry-point
+  smoke tests.
+
+### Fixed
+- `refetch()` now reaches the network even when adapter caching is enabled.
+- Cached callers no longer share the first caller's abort signal.
+- TanStack Query keys now distinguish method, effective query, headers and
+  explicit user/tenant scope.
+- URL synchronization preserves unrelated parameters and fully restores empty
+  states during back/forward navigation.
+- Non-finite array values, unsafe pagination and impossible ISO calendar dates
+  are rejected or handled consistently.
+- Vue manual fetching now shares the same state lifecycle as Vue Query and
+  aborts active work when disabled.
+- Invalid server selectors return a generic 400 instead of leaking execution
+  details; database initialization no longer leaves an unhealthy app running.
+
+### Migration
+- The SQLite example now uses EF Core migrations. Delete the disposable legacy
+  `examples/api/products.db` once before the first start on this revision.
+
 ## [0.1.0-next.4]
 
 ### Added

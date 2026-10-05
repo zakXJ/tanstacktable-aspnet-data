@@ -56,6 +56,7 @@ useAspNetDataTable({
 - `prefix` namespaces every param (e.g. `tbl_page`, `tbl_q`) to avoid clashes.
 - Reloading or opening the URL re-applies the state; the browser back/forward
   buttons re-sync the table.
+- Parameters not owned by the table are preserved.
 
 ### Debounced filtering
 
@@ -86,8 +87,14 @@ const { table, rows, totalCount, isFetching } = useAspNetDataQuery({
   endpoint: '/api/products',
   columns,
   staleTime: 30_000,
+  queryKeyScope: currentTenantId,
 })
 ```
+
+The Query key includes the method, effective wire query and a fingerprint of
+headers. `queryKeyScope` adds an explicit user/tenant partition without putting
+credentials in DevTools. If adapter caching is enabled, `refetch()` still
+forces a network request and refreshes that cache.
 
 ### Headless state without fetching
 

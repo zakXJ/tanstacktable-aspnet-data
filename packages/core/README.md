@@ -35,12 +35,25 @@ const result = await fetchPage(
 //      &filter=["manufacturer","contains","Medtronic"]
 ```
 
+When a cache is configured, simultaneous identical requests share one network
+operation, but each caller's `AbortSignal` remains independent. Force a fresh
+request and update the cache with:
+
+```ts
+await fetchPage(state, signal, { cacheMode: 'reload' })
+```
+
+The built-in memory cache also exposes `delete(key)` and `clear()`.
+
 ### URL state helpers
 
 `encodeTableState` / `decodeTableState` serialize a `TableStateSnapshot` to and
 from a human-readable `URLSearchParams` (`page`, `pageSize`, `sort`, `filter`,
 `q`). They power the `syncUrl` option in the React/Vue hooks but are exported
 for custom use too.
+
+`mergeTableStateSearchParams` replaces only the parameters owned by one table
+and preserves unrelated parameters or tables using another prefix.
 
 ```ts
 import { decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
