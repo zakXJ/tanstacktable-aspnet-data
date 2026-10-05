@@ -1,4 +1,4 @@
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, reactive } from 'vue'
 import { render, waitFor } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
@@ -144,6 +144,39 @@ describe('useAspNetDataTable (vue)', () => {
     render(Host)
 
     await waitFor(() => expect(requests.length).toBe(0))
+    expect(result.rows.value).toEqual([])
+  })
+
+  it('aborts an active request when enabled becomes false', async () => {
+    let result!: Result
+    let aborted = false
+    const options = reactive({
+      endpoint,
+      columns,
+      enabled: true,
+      fetchImpl: (_input: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            aborted = true
+            const error = new Error('aborted')
+            error.name = 'AbortError'
+            reject(error)
+          })
+        }),
+    })
+    const Host = defineComponent({
+      setup() {
+        result = useAspNetDataTable<ProductRow>(options)
+        return () => h('div')
+      },
+    })
+    render(Host)
+    await waitFor(() => expect(result.isFetching.value).toBe(true))
+
+    options.enabled = false
+
+    await waitFor(() => expect(aborted).toBe(true))
+    expect(result.isFetching.value).toBe(false)
     expect(result.rows.value).toEqual([])
   })
 

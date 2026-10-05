@@ -16,8 +16,11 @@ export { type UrlSyncOptions } from 'tanstack-aspnet-data'
 
 export interface UseAspNetDataTableStateOptions<TData> {
   columns: ColumnDef<TData, any>[]
+  /** @deprecated State-only consumers do not use transport options. */
   method?: 'GET' | 'POST'
+  /** @deprecated State-only consumers do not use transport options. */
   headers?: Record<string, string>
+  /** @deprecated State-only consumers do not use transport options. */
   fetchImpl?: typeof fetch
   textFilterOperator?: FilterOperator
   mapSelector?: SelectorMapper
