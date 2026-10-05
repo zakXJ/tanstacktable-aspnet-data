@@ -1,17 +1,34 @@
 using DevExtreme.AspNet.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TanStackDemo.Api;
 
 namespace TanStackDemo.Api.Controllers;
 
 [ApiController]
 [Route("api/products")]
-public class ProductsController(AppDbContext db) : ControllerBase {
+public class ProductsController(
+    AppDbContext db,
+    IOptions<DataLoadingOptions> loadingOptions,
+    ILogger<ProductsController> logger) : ControllerBase {
+
+    private static readonly HashSet<string> AllowedSelectors = new(StringComparer.OrdinalIgnoreCase) {
+        "Id", "Name", "Manufacturer.Name", "Manufacturer.Ref", "Manufacturer.Address",
+        "Manufacturer.City", "Manufacturer.Country", "CategoryNames", "Price",
+        "UnitsInStock", "IsActive", "CreatedAt",
+    };
 
     [HttpGet]
     [HttpPost]
     public async Task<IActionResult> Get(DataSourceLoadOptions loadOptions) {
+        var validationError = DataLoadingValidator.ValidateAndApply(
+            loadOptions, loadingOptions.Value, AllowedSelectors);
+        if (validationError is not null) {
+            logger.LogWarning("Rejected data query: {Reason}", validationError);
+            return BadRequest(new { error = "Invalid data query." });
+        }
+
         // Case-insensitive text comparisons (contains/startswith/endswith),
         // matching what users expect from a search box.
         loadOptions.StringToLower = true;
@@ -45,8 +62,8 @@ public class ProductsController(AppDbContext db) : ControllerBase {
             var result = await DataSourceLoader.LoadAsync(source, loadOptions);
             return Ok(result);
         } catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex.InnerException is ArgumentException) {
-            // Invalid filter/sort selector (e.g. unknown column) → 400 instead of 500
-            return BadRequest(new { error = ex.Message });
+            logger.LogWarning(ex, "Rejected data query during execution");
+            return BadRequest(new { error = "Invalid data query." });
         }
     }
 }

@@ -10,6 +10,7 @@ import {
 } from '../../packages/core/dist/index.js'
 
 const ENDPOINT = process.env.E2E_API_URL ?? 'http://localhost:5055/api/products'
+const MAX_TAKE = Number(process.env.E2E_MAX_TAKE || 0)
 
 const fetchPage = createAspNetDataAdapter({
   endpoint: ENDPOINT,
@@ -140,6 +141,13 @@ await t('POST method works (same binder)', async () => {
   assert(r.totalCount === 250, `totalCount=${r.totalCount}`)
   assert(r.data.length === 5, `data.length=${r.data.length}`)
 })
+
+if (MAX_TAKE > 0) {
+  await t(`configured MaxTake caps pages at ${MAX_TAKE}`, async () => {
+    const r = await fetchPage({ pagination: { pageIndex: 0, pageSize: MAX_TAKE + 50 } })
+    assert(r.data.length === MAX_TAKE, `data.length=${r.data.length}`)
+  })
+}
 
 await t('cache: identical 2nd fetch = 1 HTTP request', async () => {
   let calls = 0

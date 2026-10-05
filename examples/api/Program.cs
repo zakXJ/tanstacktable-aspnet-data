@@ -8,14 +8,18 @@ var port = Environment.GetEnvironmentVariable("PORT") ?? "5055";
 builder.WebHost.UseUrls($"http://*:{port}");
 
 // Reduce EF Core verbose logs that triggered Railway 500 logs/sec on seed
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
 
 builder.Services.AddControllers();
+builder.Services.Configure<DataLoadingOptions>(builder.Configuration.GetSection("DataLoading"));
+var connectionString = builder.Configuration.GetConnectionString("Products") ?? "Data Source=products.db";
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=products.db"));
+    options.UseSqlite(connectionString));
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
 
 var app = builder.Build();
 
@@ -26,11 +30,14 @@ app.MapHealthChecks("/health");
 using (var scope = app.Services.CreateScope()) {
     try {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.EnsureCreated();
+        db.Database.Migrate();
         DbSeeder.Seed(db);
     } catch (Exception ex) {
         app.Logger.LogError(ex, "Failed to initialize database");
+        throw;
     }
 }
 
 app.Run();
+
+public partial class Program;

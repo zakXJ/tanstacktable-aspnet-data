@@ -51,9 +51,10 @@ public static class DbSeeder {
         if (db.Products.Any()) return;
         // Guard against partial seed (e.g. crash after manufacturers) — check all tables
         if (db.Manufacturers.Any() || db.Categories.Any()) {
-            // Clean partial state to ensure idempotency
-            db.Database.EnsureDeleted();
-            db.Database.EnsureCreated();
+            // Clean partial state without destroying migration history.
+            db.Categories.RemoveRange(db.Categories);
+            db.Manufacturers.RemoveRange(db.Manufacturers);
+            db.SaveChanges();
         }
 
         using var tx = db.Database.BeginTransaction();

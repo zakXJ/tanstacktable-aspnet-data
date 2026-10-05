@@ -66,6 +66,8 @@ jobs:
         run: |
           dotnet run --project examples/api -c Release --no-build &
           echo $! > /tmp/api.pid
+        env:
+          DataLoading__MaxTake: 100
 
       - name: Wait for API health
         run: |
@@ -85,6 +87,7 @@ jobs:
         run: node examples/e2e/live.mjs
         env:
           E2E_API_URL: http://localhost:5055/api/products
+          E2E_MAX_TAKE: 100
 
       - name: Stop API
         if: always()
