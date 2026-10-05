@@ -157,6 +157,23 @@ describe('useAspNetDataTable (vue)', () => {
   })
 
   describe('cache', () => {
+    it('forces a network request when refetch is called', async () => {
+      let result!: Result
+      const Host = defineComponent({
+        setup() {
+          result = useAspNetDataTable<ProductRow>({ endpoint, columns, cache: true })
+          return () => h('div')
+        },
+      })
+      render(Host)
+      await waitFor(() => expect(result.rows.value.length).toBeGreaterThan(0))
+      const before = requests.length
+
+      result.refetch()
+
+      await waitFor(() => expect(requests.length).toBe(before + 1))
+    })
+
     it('serves cached responses and deduplicates in-flight requests', async () => {
       let result!: Result
       const Host = defineComponent({

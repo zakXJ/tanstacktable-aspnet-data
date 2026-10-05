@@ -232,6 +232,18 @@ describe('useAspNetDataTable', () => {
   })
 
   describe('cache', () => {
+    it('forces a network request when refetch is called', async () => {
+      const { result } = renderHook(() =>
+        useAspNetDataTable<ProductRow>({ endpoint, columns, cache: true }),
+      )
+      await waitFor(() => expect(result.current.rows.length).toBeGreaterThan(0))
+      const before = requests.length
+
+      act(() => result.current.refetch())
+
+      await waitFor(() => expect(requests.length).toBe(before + 1))
+    })
+
     it('serves cached responses and deduplicates in-flight requests', async () => {
       const { result, rerender } = renderHook(
         ({ cache }) =>

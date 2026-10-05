@@ -154,6 +154,7 @@ export function useAspNetDataTable<TData>(
   const isError = ref(false)
   const error = shallowRef<unknown>(null)
   const nonce = ref(0)
+  let reloadNext = false
 
   let controller: AbortController | undefined
 
@@ -200,6 +201,8 @@ export function useAspNetDataTable<TData>(
         cache: cacheInstance.value,
       })
 
+      const cacheMode = reloadNext ? 'reload' : 'default'
+      reloadNext = false
       const result = await adapter<TData>(
         {
           pagination: pagination.value,
@@ -208,6 +211,7 @@ export function useAspNetDataTable<TData>(
           globalFilter: globalFilter.value,
         },
         localController.signal,
+        { cacheMode },
       )
 
       if (localController.signal.aborted) return
@@ -270,6 +274,7 @@ export function useAspNetDataTable<TData>(
   })
 
   const refetch = () => {
+    reloadNext = true
     nonce.value++
   }
 

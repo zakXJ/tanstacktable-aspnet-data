@@ -70,4 +70,18 @@ describe('createMemoryCache', () => {
     expect(cache.get('b')).toBeDefined()
     expect(cache.get('c')).toBeDefined()
   })
+
+  it('deletes individual entries and clears all state', () => {
+    const cache = createMemoryCache()
+    cache.set('a', createResult([1]))
+    cache.set('b', createResult([2]))
+    cache.delete?.('a')
+    expect(cache.get('a')).toBeUndefined()
+    expect(cache.get('b')).toBeDefined()
+
+    cache.setInflight('pending', Promise.resolve(createResult([3])))
+    cache.clear?.()
+    expect(cache.get('b')).toBeUndefined()
+    expect(cache.getInflight('pending')).toBeUndefined()
+  })
 })

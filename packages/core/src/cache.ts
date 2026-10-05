@@ -3,6 +3,8 @@ import type { LoadResult } from './types'
 export interface DataCache {
   get(key: string): LoadResult | undefined
   set(key: string, value: LoadResult): void
+  delete?(key: string): void
+  clear?(): void
   getInflight(key: string): Promise<LoadResult> | undefined
   setInflight(key: string, promise: Promise<LoadResult>): void
   deleteInflight(key: string): void
@@ -78,6 +80,14 @@ export function createMemoryCache(options: MemoryCacheOptions = {}): DataCache {
         expiresAt: ttlMs !== undefined ? now() + ttlMs : Infinity,
       })
     },
+    delete(key: string): void {
+      cache.delete(key)
+      inflight.delete(key)
+    },
+    clear(): void {
+      cache.clear()
+      inflight.clear()
+    },
     getInflight(key: string): Promise<LoadResult> | undefined {
       return inflight.get(key)
     },
@@ -88,11 +98,6 @@ export function createMemoryCache(options: MemoryCacheOptions = {}): DataCache {
         if (oldest !== undefined) inflight.delete(oldest)
       }
       inflight.set(key, promise)
-      // Auto-cleanup on settle to prevent leaks if deleteInflight not called
-      promise.catch(() => {}).finally(() => {
-        // keep entry until explicit deleteInflight, but ensure not leaked forever
-        // No-op: actual deletion is done in adapter finally
-      })
     },
     deleteInflight(key: string): void {
       inflight.delete(key)

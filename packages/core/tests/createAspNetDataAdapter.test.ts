@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createAspNetDataAdapter } from '../src/createAspNetDataAdapter'
+import { createMemoryCache } from '../src/cache'
 import { AspNetDataError } from '../src/errors'
 
 const captured: URL[] = []
@@ -143,5 +144,66 @@ describe('parseLoadResult tolerance', () => {
     server.use(http.get('http://test.local/api/products', () => HttpResponse.json({ foo: 1 })))
     const adapter = createAspNetDataAdapter({ endpoint: 'http://test.local/api/products' })
     await expect(adapter({})).rejects.toBeInstanceOf(AspNetDataError)
+  })
+})
+
+describe('cache concurrency', () => {
+  it('lets each deduplicated consumer abort independently', async () => {
+    let resolveResponse!: (response: Response) => void
+    let calls = 0
+    const adapter = createAspNetDataAdapter({
+      endpoint: 'http://test.local/shared',
+      cache: createMemoryCache(),
+      fetchImpl: () => {
+        calls++
+        return new Promise<Response>((resolve) => {
+          resolveResponse = resolve
+        })
+      },
+    })
+    const first = new AbortController()
+    const second = new AbortController()
+
+    const firstResult = adapter({}, first.signal)
+    const secondResult = adapter({}, second.signal)
+    first.abort()
+
+    await expect(firstResult).rejects.toMatchObject({ name: 'AbortError' })
+    resolveResponse(HttpResponse.json({ data: [{ id: 1 }], totalCount: 1 }))
+    await expect(secondResult).resolves.toEqual({ data: [{ id: 1 }], totalCount: 1 })
+    expect(calls).toBe(1)
+  })
+
+  it('does not let a later consumer abort the shared request', async () => {
+    let resolveResponse!: (response: Response) => void
+    const adapter = createAspNetDataAdapter({
+      endpoint: 'http://test.local/shared',
+      cache: createMemoryCache(),
+      fetchImpl: () => new Promise<Response>((resolve) => { resolveResponse = resolve }),
+    })
+    const first = new AbortController()
+    const second = new AbortController()
+    const firstResult = adapter({}, first.signal)
+    const secondResult = adapter({}, second.signal)
+    second.abort()
+
+    await expect(secondResult).rejects.toMatchObject({ name: 'AbortError' })
+    resolveResponse(HttpResponse.json({ data: [{ id: 2 }] }))
+    await expect(firstResult).resolves.toEqual({ data: [{ id: 2 }] })
+  })
+
+  it('reload bypasses cached and in-flight values and refreshes the cache', async () => {
+    let calls = 0
+    const adapter = createAspNetDataAdapter({
+      endpoint: 'http://test.local/reload',
+      cache: createMemoryCache(),
+      fetchImpl: async () => HttpResponse.json({ data: [{ id: ++calls }] }),
+    })
+
+    await expect(adapter({})).resolves.toEqual({ data: [{ id: 1 }] })
+    await expect(adapter({})).resolves.toEqual({ data: [{ id: 1 }] })
+    await expect(adapter({}, undefined, { cacheMode: 'reload' })).resolves.toEqual({ data: [{ id: 2 }] })
+    await expect(adapter({})).resolves.toEqual({ data: [{ id: 2 }] })
+    expect(calls).toBe(2)
   })
 })

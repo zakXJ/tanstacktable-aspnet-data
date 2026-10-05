@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { createAspNetDataAdapter, createMemoryCache } from 'tanstack-aspnet-data'
 import type { BuildQueryOptions, DataCache, FilterOperator, LoadResult, MemoryCacheOptions, SelectorMapper } from 'tanstack-aspnet-data'
@@ -94,6 +94,7 @@ export function useAspNetDataQuery<TData>(
     }
     return createMemoryCache(typeof cache === 'object' ? cache : {})
   })
+  const reloadNext = ref(false)
 
   const state = useAspNetDataTableState<any>({
     columns: options.columns,
@@ -144,9 +145,12 @@ export function useAspNetDataQuery<TData>(
         },
         cache: cacheInstance.value,
       })
+      const cacheMode = reloadNext.value ? 'reload' : 'default'
+      reloadNext.value = false
       return adapter(
         { pagination: state.pagination.value, sorting: state.sorting.value, columnFilters: state.columnFilters.value, globalFilter: state.globalFilter.value },
         signal,
+        { cacheMode },
       )
     },
     staleTime,
@@ -186,7 +190,10 @@ export function useAspNetDataQuery<TData>(
     isLoading,
     isError,
     error,
-    refetch: async () => { await refetch(); },
+    refetch: async () => {
+      reloadNext.value = true
+      await refetch()
+    },
     isStale,
   }
 }

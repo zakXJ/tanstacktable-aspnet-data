@@ -4,6 +4,7 @@ export {
 export {
   createAspNetDataAdapter,
   type AspNetDataAdapterOptions,
+  type DataFetchOptions,
   type DataFetcher,
 } from './createAspNetDataAdapter'
 export { AspNetDataError } from './errors'

@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type {
   ColumnDef,
@@ -126,6 +127,7 @@ export function useAspNetDataQuery<TData>(
 
   // Create or use provided cache instance
   const cacheInstance = useCacheInstance(cache)
+  const reloadNextRef = useRef(false)
 
   const { data, isFetching: queryIsFetching, isLoading, isError: queryIsError, error: queryError, refetch: queryRefetch, isStale } = useQuery({
     queryKey: ['aspnet-data', endpoint, tableState.requestKey],
@@ -143,6 +145,8 @@ export function useAspNetDataQuery<TData>(
         },
         cache: cacheInstance,
       })
+      const cacheMode = reloadNextRef.current ? 'reload' : 'default'
+      reloadNextRef.current = false
       return adapter(
         {
           pagination: tableState.pagination,
@@ -151,6 +155,7 @@ export function useAspNetDataQuery<TData>(
           globalFilter: tableState.globalFilter,
         },
         signal,
+        { cacheMode },
       )
     },
     staleTime,
@@ -178,6 +183,7 @@ export function useAspNetDataQuery<TData>(
     isError: queryIsError,
     error: queryIsError ? (queryError as Error) : null,
     refetch: async () => {
+      reloadNextRef.current = true
       await queryRefetch()
     },
     isStale,

@@ -28,10 +28,46 @@ export interface AspNetDataAdapterOptions {
   cache?: DataCache
 }
 
+export interface DataFetchOptions {
+  /** `reload` bypasses cached and in-flight values, then refreshes the cache. */
+  cacheMode?: 'default' | 'reload'
+}
+
 export type DataFetcher = <TData = unknown>(
   state: TableStateSnapshot,
   signal?: AbortSignal,
+  fetchOptions?: DataFetchOptions,
 ) => Promise<LoadResult<TData>>
+
+function abortError(): Error {
+  const error = new Error('The operation was aborted.')
+  error.name = 'AbortError'
+  return error
+}
+
+function waitForConsumer<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise
+  if (signal.aborted) return Promise.reject(abortError())
+
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      cleanup()
+      reject(abortError())
+    }
+    const cleanup = () => signal.removeEventListener('abort', onAbort)
+    signal.addEventListener('abort', onAbort, { once: true })
+    promise.then(
+      (value) => {
+        cleanup()
+        resolve(value)
+      },
+      (error) => {
+        cleanup()
+        reject(error)
+      },
+    )
+  })
+}
 
 /**
  * Creates a reusable function that converts a TanStack Table state snapshot
@@ -63,11 +99,13 @@ export function createAspNetDataAdapter(options: AspNetDataAdapterOptions): Data
     return `${endpoint}|${method}|${headerKey}|${queryToSearchParams(query).toString()}`
   }
 
-  return async function fetchPage<TData = unknown>(state: TableStateSnapshot, signal?: AbortSignal): Promise<LoadResult<TData>> {
+  return async function fetchPage<TData = unknown>(
+    state: TableStateSnapshot,
+    signal?: AbortSignal,
+    fetchOptions: DataFetchOptions = {},
+  ): Promise<LoadResult<TData>> {
     if (signal?.aborted) {
-      const err = new Error('The operation was aborted.')
-      err.name = 'AbortError'
-      throw err
+      throw abortError()
     }
 
     let query: AspNetDataQuery
@@ -93,21 +131,26 @@ export function createAspNetDataAdapter(options: AspNetDataAdapterOptions): Data
     }
     const key = makeCacheKey(query, headerKey)
 
-    // Check cache first
-    if (cache) {
+    const reload = fetchOptions.cacheMode === 'reload'
+
+    // Check cache first. A reload deliberately starts a new request and
+    // supersedes any identical request already registered as in-flight.
+    if (cache && !reload) {
       const cached = cache.get(key)
       if (cached !== undefined) {
         return cached as LoadResult<TData>
       }
       const inflight = cache.getInflight(key)
       if (inflight) {
-        return (await inflight) as LoadResult<TData>
+        return (await waitForConsumer(inflight, signal)) as LoadResult<TData>
       }
     }
 
     let url = endpoint
     let init: RequestInit = {
-      signal,
+      // A cached request can have multiple consumers. No individual signal
+      // owns the shared network request; each consumer cancels only its wait.
+      signal: cache ? undefined : signal,
       headers: { Accept: 'application/json', ...headers },
     }
 
@@ -139,8 +182,7 @@ export function createAspNetDataAdapter(options: AspNetDataAdapterOptions): Data
       }
     }
 
-    // Register inflight promise for deduplication
-    const fetchPromise = (async () => {
+    const networkPromise = (async () => {
       let response: Response
       try {
         response = await doFetch(url, init)
@@ -175,21 +217,21 @@ export function createAspNetDataAdapter(options: AspNetDataAdapterOptions): Data
       }
     })()
 
-    if (cache) {
-      cache.setInflight(key, fetchPromise)
-    }
+    if (!cache) return networkPromise as Promise<LoadResult<TData>>
 
-    try {
-      const result = await fetchPromise
-      if (cache && !signal?.aborted) {
-        cache.set(key, result)
-      }
-      return result as LoadResult<TData>
-    } finally {
-      if (cache) {
-        cache.deleteInflight(key)
-      }
-    }
+    let sharedPromise: Promise<LoadResult>
+    sharedPromise = networkPromise
+      .then((result) => {
+        // A reload may have superseded this request. Only the current promise
+        // is allowed to update the cached value.
+        if (cache.getInflight(key) === sharedPromise) cache.set(key, result)
+        return result
+      })
+      .finally(() => {
+        if (cache.getInflight(key) === sharedPromise) cache.deleteInflight(key)
+      })
+    cache.setInflight(key, sharedPromise)
+    return (await waitForConsumer(sharedPromise, signal)) as LoadResult<TData>
   }
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -109,6 +109,7 @@ export function useAspNetDataTable<TData>(
 
   const optionsRef = useRef(options)
   optionsRef.current = options
+  const reloadNextRef = useRef(false)
 
   // Create or use provided cache instance
   const cacheInstance = useCacheInstance(cache)
@@ -138,6 +139,8 @@ export function useAspNetDataTable<TData>(
       },
       cache: cacheInstance,
     })
+    const cacheMode = reloadNextRef.current ? 'reload' : 'default'
+    reloadNextRef.current = false
     adapter<TData>(
       {
         pagination: tableState.pagination,
@@ -146,6 +149,7 @@ export function useAspNetDataTable<TData>(
         globalFilter: tableState.globalFilter,
       },
       controller.signal,
+      { cacheMode },
     )
       .then((result) => {
         if (controller.signal.aborted) return
@@ -171,7 +175,12 @@ export function useAspNetDataTable<TData>(
     state: tableState,
   })
 
-  return { table, rows, totalCount, pageCount, isFetching, isError, error, refetch: tableState.refetch }
+  const refetch = useCallback(() => {
+    reloadNextRef.current = true
+    tableState.refetch()
+  }, [tableState.refetch])
+
+  return { table, rows, totalCount, pageCount, isFetching, isError, error, refetch }
 }
 
 export type { BuildQueryOptions, FilterOperator, SelectorMapper }
