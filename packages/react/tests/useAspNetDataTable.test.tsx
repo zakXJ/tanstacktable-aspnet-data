@@ -139,6 +139,41 @@ describe('useAspNetDataTable', () => {
       await waitFor(() => expect(new URLSearchParams(window.location.search).get('q')).toBe('"pump"'))
     })
 
+    it('preserves unrelated URL parameters', async () => {
+      window.history.replaceState(null, '', '/?tab=details&utm_source=test')
+      const { result } = renderHook(() =>
+        useAspNetDataTable<ProductRow>({ endpoint, columns, syncUrl: true }),
+      )
+      await waitFor(() => expect(result.current.rows.length).toBeGreaterThan(0))
+      act(() => result.current.table.setGlobalFilter('pump'))
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get('q')).toBe('"pump"'))
+      const params = new URLSearchParams(window.location.search)
+      expect(params.get('tab')).toBe('details')
+      expect(params.get('utm_source')).toBe('test')
+    })
+
+    it('restores defaults from an empty popstate without pushing it again', async () => {
+      const push = vi.spyOn(window.history, 'pushState')
+      const { result } = renderHook(() =>
+        useAspNetDataTable<ProductRow>({ endpoint, columns, syncUrl: { mode: 'push' } }),
+      )
+      await waitFor(() => expect(result.current.rows.length).toBeGreaterThan(0))
+      act(() => result.current.table.setGlobalFilter('pump'))
+      await waitFor(() => expect(result.current.table.getState().globalFilter).toBe('pump'))
+      const pushesAfterChange = push.mock.calls.length
+
+      act(() => {
+        window.history.replaceState(null, '', '/')
+        window.dispatchEvent(new PopStateEvent('popstate'))
+      })
+
+      await waitFor(() => expect(result.current.table.getState().globalFilter).toBe(''))
+      expect(result.current.table.getState().sorting).toEqual([])
+      expect(result.current.table.getState().columnFilters).toEqual([])
+      expect(push).toHaveBeenCalledTimes(pushesAfterChange)
+      push.mockRestore()
+    })
+
     it('leaves the URL untouched when disabled', async () => {
       window.history.replaceState(null, '', '/?page=2')
       const { result } = renderHook(() =>

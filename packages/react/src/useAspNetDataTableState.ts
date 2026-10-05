@@ -6,7 +6,7 @@ import type {
   SortingState,
   Updater,
 } from '@tanstack/react-table'
-import { createTableStateKey, decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
+import { createTableStateKey, decodeTableState, mergeTableStateSearchParams } from 'tanstack-aspnet-data'
 import type { UrlSyncOptions } from 'tanstack-aspnet-data'
 import { applyUpdater } from './internal'
 
@@ -132,6 +132,12 @@ export function useAspNetDataTableState(
     () => (initialFromUrl.globalFilter !== undefined ? initialFromUrl.globalFilter : options.initialGlobalFilter ?? ''),
   )
   const [nonce, setNonce] = useState(0)
+  const initialDefaults = useRef({
+    pagination: options.initialPagination ?? { pageIndex: 0, pageSize: 25 },
+    sorting: options.initialSorting ?? [],
+    columnFilters: options.initialColumnFilters ?? [],
+    globalFilter: options.initialGlobalFilter ?? '',
+  })
 
   // The serialized state is the single fetch trigger: any change to
   // pagination/sorting/filters produces a new key and re-runs consumers.
@@ -144,27 +150,32 @@ export function useAspNetDataTableState(
   // (default) avoids polluting history; popstate below re-syncs on back/forward.
   useEffect(() => {
     if (!urlOptions || typeof window === 'undefined') return
-    const params = encodeTableState({ pagination, sorting, columnFilters, globalFilter }, urlOptions)
+    const params = mergeTableStateSearchParams(
+      window.location.search,
+      { pagination, sorting, columnFilters, globalFilter },
+      urlOptions,
+    )
     const qs = params.toString()
     const url = window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash
+    const currentUrl = window.location.pathname + window.location.search + window.location.hash
+    if (url === currentUrl) return
     if (urlOptions.mode === 'push') window.history.pushState(null, '', url)
     else window.history.replaceState(null, '', url)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestKey, nonce, urlOptions])
+  }, [requestKey, urlOptions])
 
   useEffect(() => {
     if (!urlOptions || typeof window === 'undefined') return
     const onPop = () => {
       const next = decodeTableState(window.location.search, urlOptions)
-      if (next.pagination) {
-        setPagination({
-          pageIndex: next.pagination.pageIndex ?? 0,
-          pageSize: next.pagination.pageSize ?? 25,
-        })
-      }
-      if (next.sorting) setSorting([...next.sorting] as SortingState)
-      if (next.columnFilters) setColumnFilters([...next.columnFilters] as ColumnFiltersState)
-      if (next.globalFilter !== undefined) setGlobalFilter(next.globalFilter)
+      const defaults = initialDefaults.current
+      setPagination({
+        pageIndex: next.pagination?.pageIndex ?? defaults.pagination.pageIndex,
+        pageSize: next.pagination?.pageSize ?? defaults.pagination.pageSize,
+      })
+      setSorting(next.sorting ? [...next.sorting] as SortingState : defaults.sorting)
+      setColumnFilters(next.columnFilters ? [...next.columnFilters] as ColumnFiltersState : defaults.columnFilters)
+      setGlobalFilter(next.globalFilter !== undefined ? next.globalFilter : defaults.globalFilter)
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)

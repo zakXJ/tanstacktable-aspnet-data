@@ -25,6 +25,8 @@ function withPrefix(prefix: string | undefined, key: string): string {
   return (prefix ?? '') + key
 }
 
+const TABLE_STATE_KEYS = ['page', 'pageSize', 'sort', 'filter', 'q'] as const
+
 /**
  * Serializes a TanStack Table state snapshot into URL search params using a
  * human-readable format suitable for deep links:
@@ -85,6 +87,23 @@ export function encodeTableState(state: TableStateSnapshot, options?: boolean | 
   }
 
   return params
+}
+
+/**
+ * Merges encoded table state into existing search parameters. Only parameters
+ * owned by the selected prefix are replaced; unrelated URL state is preserved.
+ */
+export function mergeTableStateSearchParams(
+  source: URLSearchParams | string,
+  state: TableStateSnapshot,
+  options?: boolean | UrlSyncOptions,
+): URLSearchParams {
+  const opts = resolveOptions(options) ?? {}
+  const result = new URLSearchParams(typeof source === 'string' ? source : source.toString())
+  for (const key of TABLE_STATE_KEYS) result.delete(withPrefix(opts.prefix, key))
+  const encoded = encodeTableState(state, opts)
+  encoded.forEach((value, key) => result.append(key, value))
+  return result
 }
 
 /**

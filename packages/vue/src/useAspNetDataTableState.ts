@@ -9,7 +9,7 @@ import type {
   Updater,
 } from '@tanstack/vue-table'
 import type { Ref } from 'vue'
-import { createTableStateKey, decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
+import { createTableStateKey, decodeTableState, mergeTableStateSearchParams } from 'tanstack-aspnet-data'
 import type { BuildQueryOptions, FilterOperator, SelectorMapper, UrlSyncOptions } from 'tanstack-aspnet-data'
 
 export { type UrlSyncOptions } from 'tanstack-aspnet-data'
@@ -121,6 +121,12 @@ export function useAspNetDataTableState<TData>(
     initialFromUrl.columnFilters ? ([...initialFromUrl.columnFilters] as ColumnFiltersState) : options.initialColumnFilters ?? [],
   )
   const globalFilter = ref<any>(initialFromUrl.globalFilter !== undefined ? initialFromUrl.globalFilter : options.initialGlobalFilter ?? '')
+  const initialDefaults = {
+    pagination: options.initialPagination ?? { pageIndex: 0, pageSize: 25 },
+    sorting: options.initialSorting ?? [],
+    columnFilters: options.initialColumnFilters ?? [],
+    globalFilter: options.initialGlobalFilter ?? '',
+  }
 
   const rows = shallowRef<TData[]>([]) as Ref<TData[]>
   const totalCount = ref<number | undefined>(undefined)
@@ -187,7 +193,8 @@ export function useAspNetDataTableState<TData>(
 
   function syncUrlEffect() {
     if (!urlOptions || typeof window === 'undefined') return
-    const params = encodeTableState(
+    const params = mergeTableStateSearchParams(
+      window.location.search,
       {
         pagination: pagination.value,
         sorting: sorting.value,
@@ -198,6 +205,8 @@ export function useAspNetDataTableState<TData>(
     )
     const qs = params.toString()
     const url = window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash
+    const currentUrl = window.location.pathname + window.location.search + window.location.hash
+    if (url === currentUrl) return
     if (urlOptions.mode === 'push') window.history.pushState(null, '', url)
     else window.history.replaceState(null, '', url)
   }
@@ -205,15 +214,13 @@ export function useAspNetDataTableState<TData>(
   function handlePopState() {
     if (!urlOptions || typeof window === 'undefined') return
     const next = decodeTableState(window.location.search, urlOptions)
-    if (next.pagination) {
-      pagination.value = {
-        pageIndex: next.pagination.pageIndex ?? 0,
-        pageSize: next.pagination.pageSize ?? 25,
-      }
+    pagination.value = {
+      pageIndex: next.pagination?.pageIndex ?? initialDefaults.pagination.pageIndex,
+      pageSize: next.pagination?.pageSize ?? initialDefaults.pagination.pageSize,
     }
-    if (next.sorting) sorting.value = next.sorting as SortingState
-    if (next.columnFilters) columnFilters.value = next.columnFilters as ColumnFiltersState
-    if (next.globalFilter !== undefined) globalFilter.value = next.globalFilter
+    sorting.value = next.sorting ? next.sorting as SortingState : initialDefaults.sorting
+    columnFilters.value = next.columnFilters ? next.columnFilters as ColumnFiltersState : initialDefaults.columnFilters
+    globalFilter.value = next.globalFilter !== undefined ? next.globalFilter : initialDefaults.globalFilter
   }
 
   function enableUrlSync() {

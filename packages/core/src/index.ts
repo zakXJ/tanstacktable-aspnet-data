@@ -10,7 +10,7 @@ export {
 export { AspNetDataError } from './errors'
 export { parseLoadResult } from './parseResponse'
 export { queryToSearchParams } from './toQueryString'
-export { decodeTableState, encodeTableState } from './urlState'
+export { decodeTableState, encodeTableState, mergeTableStateSearchParams } from './urlState'
 export {
   createAspNetDataRequestKey,
   createTableStateKey,

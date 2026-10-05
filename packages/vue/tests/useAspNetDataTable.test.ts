@@ -33,6 +33,27 @@ function mountTable() {
 }
 
 describe('useAspNetDataTable (vue)', () => {
+  it('preserves unrelated URL state and resets from popstate', async () => {
+    window.history.replaceState(null, '', '/?tab=details')
+    let result!: Result
+    const Host = defineComponent({
+      setup() {
+        result = useAspNetDataTable<ProductRow>({ endpoint, columns, syncUrl: true })
+        return () => h('div')
+      },
+    })
+    render(Host)
+    await waitFor(() => expect(result.rows.value.length).toBeGreaterThan(0))
+    result.table.setGlobalFilter('pump')
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get('q')).toBe('"pump"'))
+    expect(new URLSearchParams(window.location.search).get('tab')).toBe('details')
+
+    window.history.replaceState(null, '', '/?tab=details')
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    await waitFor(() => expect(result.table.getState().globalFilter).toBe(''))
+    expect(new URLSearchParams(window.location.search).get('tab')).toBe('details')
+  })
+
   it('fetches the initial page and exposes server state', async () => {
     const getResult = mountTable()
 
