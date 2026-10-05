@@ -191,11 +191,12 @@ export function useAspNetDataTable<TData>(
     totalCount,
     state: tableState,
   })
+  const refetchState = tableState.refetch
 
   const refetch = useCallback(() => {
     reloadNextRef.current = true
-    tableState.refetch()
-  }, [tableState.refetch])
+    refetchState()
+  }, [refetchState])
 
   return { table, rows, totalCount, pageCount, isFetching, isError, error, refetch }
 }

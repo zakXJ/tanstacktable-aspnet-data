@@ -42,6 +42,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -58,6 +59,7 @@
     "tanstack-aspnet-data": "workspace:^"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^3.0.0",
     "@tanstack/vue-query": "^5.0.0",
     "@tanstack/vue-table": "^8.21.0",
     "@testing-library/vue": "^8.1.0",

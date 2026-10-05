@@ -26,11 +26,13 @@ export function useCacheInstance(
     typeof cache === 'object' && 'get' in cache && 'set' in cache ? (cache as DataCache) : undefined
   const memoryOptions = typeof cache === 'object' && !customCache ? (cache as MemoryCacheOptions) : undefined
   const enabled = cache === true || memoryOptions !== undefined
+  const ttlMs = memoryOptions?.ttlMs
+  const limit = memoryOptions?.limit
   return useMemo<DataCache | undefined>(() => {
-    if (!cache) return undefined
+    if (!enabled && !customCache) return undefined
     if (customCache) return customCache
-    return createMemoryCache(memoryOptions)
-  }, [enabled, customCache, memoryOptions?.ttlMs, memoryOptions?.limit])
+    return createMemoryCache({ ttlMs, limit })
+  }, [enabled, customCache, ttlMs, limit])
 }
 
 export interface UseAspNetTableArgs<TData> {

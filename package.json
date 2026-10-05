@@ -1,6 +1,7 @@
 {
   "name": "tanstack-aspnet-data-monorepo",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@9.9.0",
   "scripts": {
     "build": "pnpm -r --if-present build",
@@ -9,9 +10,17 @@
     "dev:react-demo": "pnpm --filter react-demo dev",
     "dev:vue-demo": "pnpm --filter vue-demo dev",
     "test": "pnpm -r --if-present test",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "test:coverage": "pnpm --filter tanstack-aspnet-data --filter @tanstack-aspnet-data/react --filter @tanstack-aspnet-data/vue test:coverage",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "eslint \"packages/*/src/**/*.{ts,tsx}\" \"packages/*/tests/**/*.{ts,tsx}\" \"examples/e2e/**/*.mjs\" \"scripts/**/*.mjs\" --max-warnings=0",
+    "verify:packages": "node scripts/verify-packages.mjs"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^16.0.0",
+    "typescript-eslint": "^8.0.0",
     "typescript": "^5.6.0"
   }
 }

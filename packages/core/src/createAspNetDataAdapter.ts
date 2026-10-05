@@ -219,8 +219,7 @@ export function createAspNetDataAdapter(options: AspNetDataAdapterOptions): Data
 
     if (!cache) return networkPromise as Promise<LoadResult<TData>>
 
-    let sharedPromise: Promise<LoadResult>
-    sharedPromise = networkPromise
+    const sharedPromise: Promise<LoadResult> = networkPromise
       .then((result) => {
         // A reload may have superseded this request. Only the current promise
         // is allowed to update the cached value.

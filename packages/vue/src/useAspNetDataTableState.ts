@@ -89,7 +89,6 @@ export function useAspNetDataTableState<TData>(
   options: UseAspNetDataTableStateOptions<TData>,
 ): UseAspNetDataTableStateReturn<TData> {
   const {
-    columns,
     resetPageIndexOnChange = true,
     syncUrl = false,
     globalFilterDebounceMs = 0,

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { createMemoryCache } from '../src/cache'
 import type { LoadResult } from '../src/types'
 

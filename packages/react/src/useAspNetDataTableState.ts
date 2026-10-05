@@ -179,11 +179,14 @@ export function useAspNetDataTableState(
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
-  }, [urlSync])
+  }, [urlOptions])
 
   useEffect(() => {
     return () => {
+      // Timer refs intentionally hold the latest scheduled callbacks.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       if (globalFilterTimer.current) clearTimeout(globalFilterTimer.current)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       if (columnFilterTimer.current) clearTimeout(columnFilterTimer.current)
     }
   }, [])

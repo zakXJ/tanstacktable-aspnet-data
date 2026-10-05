@@ -117,8 +117,6 @@ export function useAspNetDataQuery<TData>(
     columnFilterDebounceMs: options.columnFilterDebounceMs,
   })
 
-  const { table } = state
-
   const requestIdentity = computed(() => createAspNetDataRequestKey({
     endpoint,
     method,

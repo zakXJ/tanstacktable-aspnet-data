@@ -7,7 +7,31 @@ on:
 
 jobs:
   node:
-    name: Build & test (Node)
+    name: Libraries (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter "./packages/**" typecheck
+
+      - run: pnpm --filter "./packages/**" build
+
+      - run: pnpm --filter "./packages/**" test
+
+  quality:
+    name: Lint, coverage & package smoke
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,11 +45,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm -r typecheck
+      - run: pnpm lint
 
-      - run: pnpm -r build
+      - run: pnpm test:coverage
 
-      - run: pnpm -r test
+      - run: pnpm build
+
+      - run: pnpm verify:packages
 
   dotnet:
     name: Build (ASP.NET Core example)
@@ -38,6 +64,8 @@ jobs:
           dotnet-version: 10.x
 
       - run: dotnet build examples/api
+
+      - run: dotnet test examples/api.tests
 
   e2e:
     name: E2E (Node → API → EF Core → SQLite)

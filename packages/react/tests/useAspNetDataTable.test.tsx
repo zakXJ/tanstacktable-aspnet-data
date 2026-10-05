@@ -294,7 +294,7 @@ describe('useAspNetDataTable', () => {
     })
 
     it('serves cached responses and deduplicates in-flight requests', async () => {
-      const { result, rerender } = renderHook(
+      const { result } = renderHook(
         ({ cache }) =>
           useAspNetDataTable<ProductRow>({
             endpoint,
