@@ -7,7 +7,7 @@ import type {
   SortingState,
   Table,
 } from '@tanstack/react-table'
-import { createAspNetDataAdapter } from 'tanstack-aspnet-data'
+import { createAspNetDataAdapter, createAspNetDataRequestKey } from 'tanstack-aspnet-data'
 import type { BuildQueryOptions, DataCache, FilterOperator, LoadResult, MemoryCacheOptions, SelectorMapper, UrlSyncOptions } from 'tanstack-aspnet-data'
 import { useAspNetDataTableState } from './useAspNetDataTableState'
 import { useAspNetTable, useCacheInstance } from './internal'
@@ -68,6 +68,8 @@ export interface UseAspNetDataQueryOptions<TData> {
   enabled?: boolean
   placeholderData?: LoadResult<TData>
   select?: (data: LoadResult<TData>) => LoadResult<TData>
+  /** Additional cache partition, such as a user or tenant id. */
+  queryKeyScope?: unknown
 }
 
 export interface UseAspNetDataQueryResult<TData> {
@@ -128,9 +130,22 @@ export function useAspNetDataQuery<TData>(
   // Create or use provided cache instance
   const cacheInstance = useCacheInstance(cache)
   const reloadNextRef = useRef(false)
+  const requestIdentity = createAspNetDataRequestKey({
+    endpoint,
+    method,
+    headers,
+    state: {
+      pagination: tableState.pagination,
+      sorting: tableState.sorting,
+      columnFilters: tableState.columnFilters,
+      globalFilter: tableState.globalFilter,
+    },
+    buildQuery: { textFilterOperator, mapSelector, globalFilterFields, resolveColumnFilter },
+    queryKeyScope: options.queryKeyScope,
+  })
 
   const { data, isFetching: queryIsFetching, isLoading, isError: queryIsError, error: queryError, refetch: queryRefetch, isStale } = useQuery({
-    queryKey: ['aspnet-data', endpoint, tableState.requestKey],
+    queryKey: ['aspnet-data', requestIdentity],
     queryFn: async ({ signal }) => {
       const adapter = createAspNetDataAdapter({
         endpoint,

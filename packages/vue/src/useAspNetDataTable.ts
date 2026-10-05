@@ -9,7 +9,7 @@ import type {
   Updater,
 } from '@tanstack/vue-table'
 import type { Ref } from 'vue'
-import { createAspNetDataAdapter, createMemoryCache, decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
+import { createAspNetDataAdapter, createMemoryCache, createTableStateKey, decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
 import type { BuildQueryOptions, DataCache, FilterOperator, MemoryCacheOptions, SelectorMapper, UrlSyncOptions } from 'tanstack-aspnet-data'
 
 export interface UseAspNetDataTableOptions<TData> {
@@ -159,7 +159,7 @@ export function useAspNetDataTable<TData>(
   let controller: AbortController | undefined
 
   const requestKey = computed(() =>
-    JSON.stringify({
+    createTableStateKey({
       pagination: pagination.value,
       sorting: sorting.value,
       columnFilters: columnFilters.value,

@@ -19,6 +19,11 @@ describe('buildQuery — pagination', () => {
     expect(buildQuery({ pagination: { pageSize: 25 } })).toEqual({ skip: 0, take: 25, requireTotalCount: true })
     expect(buildQuery({ pagination: { pageIndex: 3, pageSize: 0 } })).toEqual({})
   })
+
+  it('omits unsafe pagination values', () => {
+    expect(buildQuery({ pagination: { pageIndex: Number.MAX_SAFE_INTEGER, pageSize: 2 } })).toEqual({})
+    expect(buildQuery({ pagination: { pageIndex: 0, pageSize: Number.MAX_SAFE_INTEGER + 1 } })).toEqual({})
+  })
 })
 
 describe('buildQuery — sorting', () => {
@@ -152,5 +157,21 @@ describe('buildQuery — global filter', () => {
 
   it('ignores empty global filters', () => {
     expect(buildQuery({ globalFilter: '' }, { globalFilterFields: ['name'] })).toEqual({})
+  })
+})
+
+describe('buildQuery — scalar validation', () => {
+  it('rejects non-finite values inside ranges and sets', () => {
+    expect(() => buildQuery({ columnFilters: [{ id: 'price', value: [1, Infinity] }] })).toThrow(/Invalid number/)
+    expect(() => buildQuery({ columnFilters: [{ id: 'price', value: [NaN, 2, 3] }] })).toThrow(/Invalid number/)
+  })
+
+  it('does not classify impossible calendar dates as date ranges', () => {
+    const query = buildQuery({ columnFilters: [{ id: 'createdAt', value: ['2024-02-31', '2024-03-01'] }] })
+    expect(query.filter).toEqual([
+      ['createdAt', '=', '2024-02-31'],
+      'or',
+      ['createdAt', '=', '2024-03-01'],
+    ])
   })
 })

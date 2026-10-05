@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
-import { createAspNetDataAdapter, createMemoryCache } from 'tanstack-aspnet-data'
+import { createAspNetDataAdapter, createAspNetDataRequestKey, createMemoryCache } from 'tanstack-aspnet-data'
 import type { BuildQueryOptions, DataCache, FilterOperator, LoadResult, MemoryCacheOptions, SelectorMapper } from 'tanstack-aspnet-data'
 import { useAspNetDataTableState, type UrlSyncOptions } from './useAspNetDataTableState'
 
@@ -58,6 +58,8 @@ export interface UseAspNetDataQueryOptions<TData> {
   gcTime?: number
   retry?: number | boolean
   enabled?: boolean
+  /** Additional cache partition, such as a user or tenant id. */
+  queryKeyScope?: unknown
 }
 
 export interface UseAspNetDataQueryResult<TData> {
@@ -117,17 +119,26 @@ export function useAspNetDataQuery<TData>(
 
   const { table } = state
 
-  // Build cache key for queryKey
-  const requestKey = computed(() =>
-    JSON.stringify({
+  const requestIdentity = computed(() => createAspNetDataRequestKey({
+    endpoint,
+    method,
+    headers: options.headers,
+    state: {
       pagination: state.pagination.value,
       sorting: state.sorting.value,
       columnFilters: state.columnFilters.value,
       globalFilter: state.globalFilter.value,
-    }),
-  )
+    },
+    buildQuery: {
+      textFilterOperator: options.textFilterOperator,
+      mapSelector: options.mapSelector,
+      globalFilterFields: options.globalFilterFields,
+      resolveColumnFilter: options.resolveColumnFilter,
+    },
+    queryKeyScope: options.queryKeyScope,
+  }))
 
-  const queryKey = computed(() => ['aspnet-data', options.endpoint, requestKey.value, state.nonce.value])
+  const queryKey = computed(() => ['aspnet-data', requestIdentity.value, state.nonce.value])
 
   const { data, isFetching, isLoading, isError, error, refetch, isStale } = useQuery<LoadResult<TData>, Error, LoadResult<TData>, (string | number)[]>({
     queryKey,

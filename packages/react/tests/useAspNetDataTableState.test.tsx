@@ -59,4 +59,10 @@ describe('useAspNetDataTableState', () => {
 
     expect(result.current.globalFilter).toBe('pump')
   })
+
+  it('derives a request key for bigint filters without crashing', () => {
+    const { result } = renderHook(() => useAspNetDataTableState())
+    act(() => result.current.onGlobalFilterChange(42n))
+    expect(result.current.requestKey).toContain('$bigint')
+  })
 })

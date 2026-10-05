@@ -244,6 +244,20 @@ describe('useAspNetDataTable', () => {
       await waitFor(() => expect(requests.length).toBe(before + 1))
     })
 
+    it('keeps an inline cache configuration stable across renders', async () => {
+      const { result } = renderHook(() =>
+        useAspNetDataTable<ProductRow>({ endpoint, columns, cache: { limit: 10 } }),
+      )
+      await waitFor(() => expect(result.current.rows.length).toBeGreaterThan(0))
+      expect(requests.length).toBe(1)
+
+      act(() => result.current.table.setPagination({ pageIndex: 1, pageSize: 25 }))
+      await waitFor(() => expect(requests.length).toBe(2))
+      act(() => result.current.table.setPagination({ pageIndex: 0, pageSize: 25 }))
+      await waitFor(() => expect(result.current.table.getState().pagination.pageIndex).toBe(0))
+      expect(requests.length).toBe(2)
+    })
+
     it('serves cached responses and deduplicates in-flight requests', async () => {
       const { result, rerender } = renderHook(
         ({ cache }) =>

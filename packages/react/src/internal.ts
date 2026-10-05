@@ -22,13 +22,15 @@ export function applyUpdater<T>(updater: Updater<T>, old: T): T {
 export function useCacheInstance(
   cache: boolean | MemoryCacheOptions | DataCache | undefined,
 ): DataCache | undefined {
+  const customCache =
+    typeof cache === 'object' && 'get' in cache && 'set' in cache ? (cache as DataCache) : undefined
+  const memoryOptions = typeof cache === 'object' && !customCache ? (cache as MemoryCacheOptions) : undefined
+  const enabled = cache === true || memoryOptions !== undefined
   return useMemo<DataCache | undefined>(() => {
     if (!cache) return undefined
-    if (typeof cache === 'object' && 'get' in cache && 'set' in cache) {
-      return cache as DataCache
-    }
-    return createMemoryCache(typeof cache === 'object' ? cache : {})
-  }, [cache])
+    if (customCache) return customCache
+    return createMemoryCache(memoryOptions)
+  }, [enabled, customCache, memoryOptions?.ttlMs, memoryOptions?.limit])
 }
 
 export interface UseAspNetTableArgs<TData> {

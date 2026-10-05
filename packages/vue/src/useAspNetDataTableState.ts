@@ -9,7 +9,7 @@ import type {
   Updater,
 } from '@tanstack/vue-table'
 import type { Ref } from 'vue'
-import { decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
+import { createTableStateKey, decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
 import type { BuildQueryOptions, FilterOperator, SelectorMapper, UrlSyncOptions } from 'tanstack-aspnet-data'
 
 export { type UrlSyncOptions } from 'tanstack-aspnet-data'
@@ -137,7 +137,7 @@ export function useAspNetDataTableState<TData>(
   })
 
   const requestKey = computed(() =>
-    JSON.stringify({
+    createTableStateKey({
       pagination: pagination.value,
       sorting: sorting.value,
       columnFilters: columnFilters.value,

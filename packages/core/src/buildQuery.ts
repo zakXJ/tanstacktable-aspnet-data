@@ -12,7 +12,7 @@ type Condition = unknown
 const DEFAULT_TEXT_OPERATOR = 'contains'
 const ALLOWED_TEXT_OPERATORS = new Set(['contains', 'notcontains', 'startswith', 'endswith', '=', '<>', '>', '>=', '<', '<='])
 // Anchored ISO date: YYYY-MM-DD with optional time part, validated month/day range
-const ISO_DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?:[T ]\S*)?$/
+const ISO_DATE_PATTERN = /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?:[T ]\S*)?$/
 
 interface ResolvedOptions {
   textOperator: string
@@ -39,6 +39,10 @@ function isEmptyValue(value: unknown): boolean {
 }
 
 function normalizeScalar(value: unknown): unknown {
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    throw new Error('Invalid number: NaN or Infinity not serializable')
+  }
+  if (typeof value === 'bigint') return String(value)
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) throw new Error('Invalid Date')
     return value.toISOString()
@@ -47,7 +51,15 @@ function normalizeScalar(value: unknown): unknown {
 }
 
 function isIsoDateString(value: unknown): value is string {
-  return typeof value === 'string' && ISO_DATE_PATTERN.test(value)
+  if (typeof value !== 'string') return false
+  const match = ISO_DATE_PATTERN.exec(value)
+  if (!match) return false
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  return day <= days[month - 1]!
 }
 
 /**
@@ -68,7 +80,7 @@ function isRangePair(a: unknown, b: unknown): boolean {
   if (aEmpty && bEmpty) return false
   if (aEmpty) return isRangeBound(b)
   if (bEmpty) return isRangeBound(a)
-  if (typeof a === 'number' && typeof b === 'number') return true
+  if (typeof a === 'number' && typeof b === 'number') return isRangeBound(a) && isRangeBound(b)
   if (a instanceof Date && b instanceof Date) return true
   return isIsoDateString(a) && isIsoDateString(b)
 }
@@ -208,9 +220,12 @@ export function buildQuery(state: TableStateSnapshot = {}, options: BuildQueryOp
     if (typeof rawPageIndex === 'number' && Number.isFinite(rawPageIndex) && Number.isInteger(rawPageIndex) && rawPageIndex >= 0) {
       pageIndex = rawPageIndex
     }
-    query.skip = pageIndex * pageSize
-    query.take = pageSize
-    query.requireTotalCount = true
+    const skip = pageIndex * pageSize
+    if (Number.isSafeInteger(pageSize) && Number.isSafeInteger(pageIndex) && Number.isSafeInteger(skip)) {
+      query.skip = skip
+      query.take = pageSize
+      query.requireTotalCount = true
+    }
   }
 
   if (state.sorting && state.sorting.length > 0) {

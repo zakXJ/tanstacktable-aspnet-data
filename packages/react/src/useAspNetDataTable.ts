@@ -6,7 +6,7 @@ import type {
   SortingState,
   Table,
 } from '@tanstack/react-table'
-import { createAspNetDataAdapter } from 'tanstack-aspnet-data'
+import { createAspNetDataAdapter, createAspNetDataRequestKey } from 'tanstack-aspnet-data'
 import type { BuildQueryOptions, DataCache, FilterOperator, MemoryCacheOptions, SelectorMapper, UrlSyncOptions } from 'tanstack-aspnet-data'
 import { useAspNetDataTableState } from './useAspNetDataTableState'
 import { useAspNetTable, useCacheInstance } from './internal'
@@ -113,6 +113,23 @@ export function useAspNetDataTable<TData>(
 
   // Create or use provided cache instance
   const cacheInstance = useCacheInstance(cache)
+  const requestIdentity = createAspNetDataRequestKey({
+    endpoint,
+    method,
+    headers: options.headers,
+    state: {
+      pagination: tableState.pagination,
+      sorting: tableState.sorting,
+      columnFilters: tableState.columnFilters,
+      globalFilter: tableState.globalFilter,
+    },
+    buildQuery: {
+      textFilterOperator: options.textFilterOperator,
+      mapSelector: options.mapSelector,
+      globalFilterFields: options.globalFilterFields,
+      resolveColumnFilter: options.resolveColumnFilter,
+    },
+  })
 
   useEffect(() => {
     if (!enabled) {
@@ -166,7 +183,7 @@ export function useAspNetDataTable<TData>(
 
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, method, enabled, tableState.requestKey, tableState.nonce])
+  }, [enabled, requestIdentity, tableState.nonce, cacheInstance])
 
   const { table, pageCount } = useAspNetTable({
     columns: options.columns,

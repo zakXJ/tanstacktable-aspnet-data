@@ -6,7 +6,7 @@ import type {
   SortingState,
   Updater,
 } from '@tanstack/react-table'
-import { decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
+import { createTableStateKey, decodeTableState, encodeTableState } from 'tanstack-aspnet-data'
 import type { UrlSyncOptions } from 'tanstack-aspnet-data'
 import { applyUpdater } from './internal'
 
@@ -136,7 +136,7 @@ export function useAspNetDataTableState(
   // The serialized state is the single fetch trigger: any change to
   // pagination/sorting/filters produces a new key and re-runs consumers.
   const requestKey = useMemo(
-    () => JSON.stringify({ pagination, sorting, columnFilters, globalFilter }),
+    () => createTableStateKey({ pagination, sorting, columnFilters, globalFilter }),
     [pagination, sorting, columnFilters, globalFilter],
   )
 

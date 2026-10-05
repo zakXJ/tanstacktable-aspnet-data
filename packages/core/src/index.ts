@@ -11,6 +11,13 @@ export { AspNetDataError } from './errors'
 export { parseLoadResult } from './parseResponse'
 export { queryToSearchParams } from './toQueryString'
 export { decodeTableState, encodeTableState } from './urlState'
+export {
+  createAspNetDataRequestKey,
+  createTableStateKey,
+  fingerprintHeaders,
+  stableSerialize,
+  type AspNetDataRequestKeyOptions,
+} from './requestIdentity'
 export { createMemoryCache } from './cache'
 export type { DataCache, MemoryCacheOptions } from './cache'
 export type { UrlSyncOptions } from './urlState'
