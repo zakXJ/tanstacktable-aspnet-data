@@ -9,7 +9,7 @@
 
 **Server-side data adapter for TanStack Table + ASP.NET Core.**
 
-> **Live demo:** [React demo](https://tanstack-react-demo.vercel.app) · [Vue demo](https://tanstack-vue-demo.vercel.app) · [API (Railway)](https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true)
+> **Live demo:** [React demo](https://tanstacktable-aspnet-data-react-dem-ten.vercel.app) · [Vue demo](https://tanstacktable-aspnet-data-vue-seven.vercel.app) · [API (Railway)](https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true)
 
 Turns TanStack Table state into [DevExtreme.AspNet.Data](https://github.com/DevExpress/DevExtreme.AspNet.Data)
 queries — so filtering, sorting and paging are executed **in SQL by EF Core**
@@ -215,8 +215,8 @@ Returns `{ table, rows, totalCount, pageCount, isFetching, isError, error, refet
 
 Live (prod API on Railway):
 
-- React: https://tanstack-react-demo.vercel.app
-- Vue: https://tanstack-vue-demo.vercel.app
+- React: https://tanstacktable-aspnet-data-react-dem-ten.vercel.app
+- Vue: https://tanstacktable-aspnet-data-vue-seven.vercel.app
 - API: https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true
 
 Local:

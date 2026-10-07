@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/tanstack-aspnet-data.svg)](https://www.npmjs.com/package/tanstack-aspnet-data)
 
-> **Live demo:** [React](https://tanstack-react-demo.vercel.app) · [Vue](https://tanstack-vue-demo.vercel.app) · [API](https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true)
+> **Live demo:** [React](https://tanstacktable-aspnet-data-react-dem-ten.vercel.app) · [Vue](https://tanstacktable-aspnet-data-vue-seven.vercel.app) · [API](https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true)
 
 Framework-agnostic core of the TanStack Table ↔ ASP.NET Core bridge.
 

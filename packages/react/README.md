@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@tanstack-aspnet-data/react.svg)](https://www.npmjs.com/package/@tanstack-aspnet-data/react)
 
-> **Live demo:** [React demo](https://tanstack-react-demo.vercel.app) · [API](https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true)
+> **Live demo:** [React demo](https://tanstacktable-aspnet-data-react-dem-ten.vercel.app) · [API](https://tanstack-aspnet-data-production.up.railway.app/api/products?skip=0&take=5&requireTotalCount=true)
 
 React hook that turns TanStack Table v8 into a fully server-side table backed
 by [DevExtreme.AspNet.Data](https://github.com/DevExpress/DevExtreme.AspNet.Data)
