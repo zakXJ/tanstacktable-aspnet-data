@@ -206,4 +206,30 @@ describe('cache concurrency', () => {
     await expect(adapter({})).resolves.toEqual({ data: [{ id: 2 }] })
     expect(calls).toBe(2)
   })
+
+  it('shares one cache entry across header-name casing', async () => {
+    // Header names are case-insensitive on the wire, so the cache key must be too.
+    let calls = 0
+    const cache = createMemoryCache()
+    const fetchImpl = async () => {
+      calls++
+      return HttpResponse.json({ data: [], totalCount: 0 })
+    }
+    const upper = createAspNetDataAdapter({
+      endpoint: 'http://test.local/case',
+      headers: { Authorization: 't' },
+      cache,
+      fetchImpl,
+    })
+    const lower = createAspNetDataAdapter({
+      endpoint: 'http://test.local/case',
+      headers: { authorization: 't' },
+      cache,
+      fetchImpl,
+    })
+
+    await upper({})
+    await lower({})
+    expect(calls).toBe(1)
+  })
 })

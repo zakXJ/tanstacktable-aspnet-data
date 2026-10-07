@@ -23,8 +23,13 @@ export function useCacheInstance(
   cache: boolean | MemoryCacheOptions | DataCache | undefined,
 ): DataCache | undefined {
   const customCache =
-    typeof cache === 'object' && 'get' in cache && 'set' in cache ? (cache as DataCache) : undefined
-  const memoryOptions = typeof cache === 'object' && !customCache ? (cache as MemoryCacheOptions) : undefined
+    cache !== null
+    && typeof cache === 'object'
+    && 'get' in cache
+    && 'set' in cache
+      ? (cache as DataCache)
+      : undefined
+  const memoryOptions = cache !== null && typeof cache === 'object' && !customCache ? (cache as MemoryCacheOptions) : undefined
   const enabled = cache === true || memoryOptions !== undefined
   const ttlMs = memoryOptions?.ttlMs
   const limit = memoryOptions?.limit

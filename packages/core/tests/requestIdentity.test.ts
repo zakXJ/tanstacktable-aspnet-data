@@ -42,4 +42,24 @@ describe('request identity', () => {
     const scope = createAspNetDataRequestKey({ ...base, buildQuery: { globalFilterFields: ['name'] }, queryKeyScope: 'user-2' })
     expect(new Set([get, post, header, mapping, scope])).toHaveLength(5)
   })
+
+  it('normalizes method casing in request keys', () => {
+    const base = { endpoint: '/api/products', state: {} }
+    expect(createAspNetDataRequestKey({ ...base, method: 'get' as 'GET' })).toBe(
+      createAspNetDataRequestKey({ ...base, method: 'GET' }),
+    )
+  })
+
+  it('sorts headers by codepoint, independent of runtime locale', () => {
+    // Golden value: locks the exact ordering + FNV-1a output so any
+    // accidental change (e.g. back to localeCompare, which collates
+    // differently per runtime locale) fails loudly.
+    expect(
+      fingerprintHeaders({ 'X-Zebra': '1', 'X-apple': '2', Accept: 'json' }),
+    ).toBe('b8e8707b5870d724')
+    // Order independence holds regardless of input order.
+    expect(
+      fingerprintHeaders({ 'X-Zebra': '1', 'X-apple': '2' }),
+    ).toBe(fingerprintHeaders({ 'X-apple': '2', 'X-Zebra': '1' }))
+  })
 })

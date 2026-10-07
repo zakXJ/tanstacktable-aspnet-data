@@ -55,9 +55,13 @@ export function createTableStateKey(state: TableStateSnapshot): string {
  */
 export function fingerprintHeaders(headers?: Record<string, string>): string {
   if (!headers) return '0000000000000000'
+  // Codepoint comparison (not localeCompare): deterministic across runtimes
+  // and locales (e.g. Turkish 'i' collation must not change fingerprints).
+  const comparePair = ([aName, aValue]: readonly [string, string], [bName, bValue]: readonly [string, string]) =>
+    aName < bName ? -1 : aName > bName ? 1 : aValue < bValue ? -1 : aValue > bValue ? 1 : 0
   const normalized = Object.keys(headers)
     .map((name) => [name.toLowerCase(), String(headers[name])] as const)
-    .sort(([aName, aValue], [bName, bValue]) => aName.localeCompare(bName) || aValue.localeCompare(bValue))
+    .sort(comparePair)
     .map(([name, value]) => `${name}:${value}\n`)
     .join('')
 
@@ -88,9 +92,12 @@ export function createAspNetDataRequestKey(options: AspNetDataRequestKeyOptions)
     // render phase while deriving its dependency key.
     wireQuery = `invalid:${createTableStateKey(options.state)}`
   }
+  // Normalized to uppercase: the adapter treats 'get' and 'GET' as the same
+  // wire request, so the identity must too.
+  const method = (options.method ?? 'GET').toUpperCase()
   return stableSerialize({
     endpoint: options.endpoint,
-    method: options.method ?? 'GET',
+    method,
     headers: fingerprintHeaders(options.headers),
     query: wireQuery,
     scope: options.queryKeyScope,

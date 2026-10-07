@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useAspNetDataTableState } from '../src/useAspNetDataTableState'
+import { useCacheInstance } from '../src/internal'
 import type { ProductRow } from './setup'
 
 const columns: ColumnDef<ProductRow>[] = [
@@ -64,5 +65,27 @@ describe('useAspNetDataTableState', () => {
     const { result } = renderHook(() => useAspNetDataTableState())
     act(() => result.current.onGlobalFilterChange(42n))
     expect(result.current.requestKey).toContain('$bigint')
+  })
+})
+
+describe('useCacheInstance', () => {
+  it('tolerates nullish cache values without crashing', () => {
+    const { result: rNull } = renderHook(() => useCacheInstance(null as any))
+    expect(rNull.current).toBeUndefined()
+
+    const { result: rUndef } = renderHook(() => useCacheInstance(undefined))
+    expect(rUndef.current).toBeUndefined()
+
+    const { result: rFalse } = renderHook(() => useCacheInstance(false))
+    expect(rFalse.current).toBeUndefined()
+  })
+
+  it('creates a memory cache for true and option objects', () => {
+    const { result: rTrue } = renderHook(() => useCacheInstance(true))
+    expect(rTrue.current).toBeDefined()
+
+    const { result: rOpts } = renderHook(() => useCacheInstance({ ttlMs: 1000 }))
+    expect(rOpts.current).toBeDefined()
+    expect(rOpts.current).not.toBe(rTrue.current)
   })
 })

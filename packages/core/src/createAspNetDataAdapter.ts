@@ -118,10 +118,14 @@ export function createAspNetDataAdapter(options: AspNetDataAdapterOptions): Data
     let headerKey = ''
     if (headers) {
       try {
+        // Header names are case-insensitive on the wire: normalize to
+        // lowercase (codepoint sort, like fingerprintHeaders()) so that
+        // `{Authorization: 't'}` and `{authorization: 't'}` share one entry.
         const sorted = Object.keys(headers)
-          .sort()
-          .reduce<Record<string, string>>((acc, k) => {
-            acc[k] = headers[k]!
+          .map((k) => [k.toLowerCase(), headers[k]!] as const)
+          .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+          .reduce<Record<string, string>>((acc, [k, v]) => {
+            acc[k] = v
             return acc
           }, {})
         headerKey = JSON.stringify(sorted)

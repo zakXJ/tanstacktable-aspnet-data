@@ -55,8 +55,9 @@ export interface UseAspNetDataTableStateReturn {
    */
   requestKey: string
   /**
-   * Manual fetch generation counter. Bumped by `refetch()`; also re-emits
-   * the URL sync so a programmatic refetch refreshes a shared link.
+   * Manual fetch generation counter. Bumped by `refetch()` to re-run a
+   * manual fetch. It is intentionally not part of the URL sync: a
+   * programmatic refetch must not rewrite shared links or pollute history.
    * Query-based consumers never bump it (their `requestKey` suffices).
    */
   nonce: number
@@ -123,10 +124,12 @@ export function useAspNetDataTableState(
     }),
   )
   const [sorting, setSorting] = useState<SortingState>(
-    () => (initialFromUrl.sorting ? ([...initialFromUrl.sorting] as SortingState) : (options.initialSorting ?? [])),
+    // Copy caller-owned arrays: TanStack mutates state in place, so sharing
+    // the reference would corrupt the caller's `initial*` props.
+    () => (initialFromUrl.sorting ? ([...initialFromUrl.sorting] as SortingState) : ([...(options.initialSorting ?? [])] as SortingState)),
   )
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    () => (initialFromUrl.columnFilters ? ([...initialFromUrl.columnFilters] as ColumnFiltersState) : (options.initialColumnFilters ?? [])),
+    () => (initialFromUrl.columnFilters ? ([...initialFromUrl.columnFilters] as ColumnFiltersState) : ([...(options.initialColumnFilters ?? [])] as ColumnFiltersState)),
   )
   const [globalFilter, setGlobalFilter] = useState<any>(
     () => (initialFromUrl.globalFilter !== undefined ? initialFromUrl.globalFilter : options.initialGlobalFilter ?? ''),
@@ -134,8 +137,10 @@ export function useAspNetDataTableState(
   const [nonce, setNonce] = useState(0)
   const initialDefaults = useRef({
     pagination: options.initialPagination ?? { pageIndex: 0, pageSize: 25 },
-    sorting: options.initialSorting ?? [],
-    columnFilters: options.initialColumnFilters ?? [],
+    // Copies: the restore path below sets these arrays as state, and shared
+    // references would alias caller-owned props (see initializers above).
+    sorting: [...(options.initialSorting ?? [])],
+    columnFilters: [...(options.initialColumnFilters ?? [])],
     globalFilter: options.initialGlobalFilter ?? '',
   })
 
@@ -173,8 +178,8 @@ export function useAspNetDataTableState(
         pageIndex: next.pagination?.pageIndex ?? defaults.pagination.pageIndex,
         pageSize: next.pagination?.pageSize ?? defaults.pagination.pageSize,
       })
-      setSorting(next.sorting ? [...next.sorting] as SortingState : defaults.sorting)
-      setColumnFilters(next.columnFilters ? [...next.columnFilters] as ColumnFiltersState : defaults.columnFilters)
+      setSorting(next.sorting ? [...next.sorting] as SortingState : [...defaults.sorting] as SortingState)
+      setColumnFilters(next.columnFilters ? [...next.columnFilters] as ColumnFiltersState : [...defaults.columnFilters] as ColumnFiltersState)
       setGlobalFilter(next.globalFilter !== undefined ? next.globalFilter : defaults.globalFilter)
     }
     window.addEventListener('popstate', onPop)

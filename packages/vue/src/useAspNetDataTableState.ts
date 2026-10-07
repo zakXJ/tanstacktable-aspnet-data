@@ -116,17 +116,19 @@ export function useAspNetDataTableState<TData>(
     pageIndex: initialFromUrl.pagination?.pageIndex ?? options.initialPagination?.pageIndex ?? 0,
     pageSize: initialFromUrl.pagination?.pageSize ?? options.initialPagination?.pageSize ?? 25,
   })
+  // Copies: TanStack mutates state in place, so the refs must never alias
+  // caller-owned `initial*` arrays.
   const sorting = ref<SortingState>(
-    initialFromUrl.sorting ? ([...initialFromUrl.sorting] as SortingState) : options.initialSorting ?? [],
+    initialFromUrl.sorting ? ([...initialFromUrl.sorting] as SortingState) : ([...(options.initialSorting ?? [])] as SortingState),
   )
   const columnFilters = ref<ColumnFiltersState>(
-    initialFromUrl.columnFilters ? ([...initialFromUrl.columnFilters] as ColumnFiltersState) : options.initialColumnFilters ?? [],
+    initialFromUrl.columnFilters ? ([...initialFromUrl.columnFilters] as ColumnFiltersState) : ([...(options.initialColumnFilters ?? [])] as ColumnFiltersState),
   )
   const globalFilter = ref<any>(initialFromUrl.globalFilter !== undefined ? initialFromUrl.globalFilter : options.initialGlobalFilter ?? '')
   const initialDefaults = {
     pagination: options.initialPagination ?? { pageIndex: 0, pageSize: 25 },
-    sorting: options.initialSorting ?? [],
-    columnFilters: options.initialColumnFilters ?? [],
+    sorting: [...(options.initialSorting ?? [])],
+    columnFilters: [...(options.initialColumnFilters ?? [])],
     globalFilter: options.initialGlobalFilter ?? '',
   }
 
@@ -220,8 +222,8 @@ export function useAspNetDataTableState<TData>(
       pageIndex: next.pagination?.pageIndex ?? initialDefaults.pagination.pageIndex,
       pageSize: next.pagination?.pageSize ?? initialDefaults.pagination.pageSize,
     }
-    sorting.value = next.sorting ? next.sorting as SortingState : initialDefaults.sorting
-    columnFilters.value = next.columnFilters ? next.columnFilters as ColumnFiltersState : initialDefaults.columnFilters
+    sorting.value = next.sorting ? [...next.sorting] as SortingState : [...initialDefaults.sorting] as SortingState
+    columnFilters.value = next.columnFilters ? [...next.columnFilters] as ColumnFiltersState : [...initialDefaults.columnFilters] as ColumnFiltersState
     globalFilter.value = next.globalFilter !== undefined ? next.globalFilter : initialDefaults.globalFilter
   }
 
