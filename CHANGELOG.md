@@ -32,8 +32,9 @@ the first stable `0.1.0`.
   details; database initialization no longer leaves an unhealthy app running.
 
 ### Migration
-- The SQLite example now uses EF Core migrations. Delete the disposable legacy
-  `examples/api/products.db` once before the first start on this revision.
+- The SQLite example now uses EF Core migrations. Pre-migrations databases
+  are upgraded automatically at startup (`LegacyDatabaseStamper` records the
+  baseline as applied); existing rows are preserved, no deletion needed.
 
 ## [0.1.0-next.4]
 

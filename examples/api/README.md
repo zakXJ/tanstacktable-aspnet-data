@@ -69,10 +69,12 @@ Override SQLite with `ConnectionStrings__Products`, for example
 `Data Source=/data/products.db`.
 
 Databases created before this migration-enabled revision have no EF migration
-history. For this disposable demo database, stop the API and delete the old
-`products.db` once; the next start recreates and seeds it through migrations.
-Do not use that deletion procedure for application data—create a baseline
-migration instead.
+history. At startup `LegacyDatabaseStamper` detects that legacy shape
+(`Products` table, no history) and records the baseline migration as applied
+without touching existing rows, so `Migrate()` continues from there. Fresh
+databases migrate normally; no manual deletion needed. Do not rely on this
+stamping for application data — create a real baseline migration instead.
+See `LegacyDatabaseStamper.cs`.
 
 ## Files of interest
 

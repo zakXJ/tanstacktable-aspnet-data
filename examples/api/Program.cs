@@ -30,6 +30,7 @@ app.MapHealthChecks("/health");
 using (var scope = app.Services.CreateScope()) {
     try {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        LegacyDatabaseStamper.StampBaselineIfLegacy(db);
         db.Database.Migrate();
         DbSeeder.Seed(db);
     } catch (Exception ex) {
