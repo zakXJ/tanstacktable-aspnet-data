@@ -1,10 +1,21 @@
 # Changelog
 
 All notable changes to the `tanstack-aspnet-data` monorepo (core + React +
-Vue) are documented here. Versions are pre-releases (`0.1.0-next.x`) until
-the first stable `0.1.0`.
+Vue) are documented here. `0.1.0` is the first stable release; earlier
+`0.1.0-next.x` versions were pre-releases.
 
-## [Unreleased]
+## [0.1.0] - 2026-10-07
+
+First stable release. Includes everything below since `0.1.0-next.4`, plus:
+
+### Fixed
+- `useCacheInstance` tolerates `null` cache values instead of throwing.
+- Request identity is fully deterministic (codepoint header sort, uppercased
+  method) and the adapter cache key lowercases header names to match.
+- Table state no longer aliases caller-owned `initialSorting` /
+  `initialColumnFilters` arrays.
+- Pre-migrations SQLite databases are stamped onto the migrations baseline
+  automatically; no data loss, no manual deletion.
 
 ### Added
 - Independent cancellation for deduplicated requests and explicit

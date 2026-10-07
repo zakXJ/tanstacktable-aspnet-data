@@ -162,6 +162,13 @@ GET /api/products?skip=100&take=50&requireTotalCount=true
 Response: `{ "data": [...], "totalCount": 1234 }` (PascalCase payloads are
 normalized too).
 
+Failed statuses throw `AspNetDataError` carrying the HTTP `status` and, when
+the server sent one, the raw response body — truncated to 2000 characters,
+appended to the message and also available as `error.body`. In production,
+make sure the API returns generic error payloads (the example endpoint
+answers `{ "error": "Invalid data query." }`) so no stack trace or business
+detail leaks into logs or the UI through that channel.
+
 ### Filter conventions
 
 | TanStack column filter value | DevExtreme condition |
